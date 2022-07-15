@@ -2,8 +2,6 @@ import React from "react";
 import { Container, Row } from "./styles";
 
 import "materialize-css";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
 
 import { Link } from "react-router-dom";
 
