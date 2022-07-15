@@ -22,8 +22,8 @@ export default function App() {
             if (isNaN(valorBic)) {
                 setValorBic(0);
             }
-        const valorBicTotal = (parseFloat(valorSodio) + parseFloat(valorPotassio)) - (parseFloat(valorCloro) - 19)
-            if(valorCloro != 0 || valorPotassio != 0 || valorSodio != 0)
+        const valorBicTotal = ((parseFloat(valorSodio) + parseFloat(valorPotassio)) - parseFloat(valorCloro)) - 19
+            if(valorCloro !== 0 || valorPotassio !== 0 || valorSodio != 0)
             setValorBic(valorBicTotal)
         }
        
