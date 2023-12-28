@@ -55,6 +55,14 @@ function ContractGenerator() {
             setTotalCount(prevCount => prevCount + 1);
           }
           break;
+          case '0':
+        setCountS(0);
+        setCountD(0);
+        setCountF(0);
+        setCountG(0);
+        setCountH(0);
+        setTotalCount(0);
+        break;
         default:
           break;
       }
@@ -100,6 +108,14 @@ function ContractGenerator() {
         setCountH(prevCount => prevCount + 1);
         setTotalCount(prevCount => prevCount + 1);
         break;
+        case 'count0':
+        setCountS(0);
+        setCountD(0);
+        setCountF(0);
+        setCountG(0);
+        setCountH(0);
+        setTotalCount(0);
+        break;
       default:
         break;
     }
@@ -132,8 +148,8 @@ function ContractGenerator() {
     </div>
     
     </body>
-    <div>
-      <p><b>Total: {totalCount}</b></p>
+    <div id="count0" onClick={handleClick}>
+      <p><b>Total: {totalCount <= 100 ? totalCount : 100}</b></p>
     </div>
     </Container>
     </>
