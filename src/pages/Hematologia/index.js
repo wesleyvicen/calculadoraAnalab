@@ -77,7 +77,7 @@ function ContractGenerator() {
   function handleClick(event) {
     switch (event.target.id) {
       case 'countA':
-        setCountS(prevCount => prevCount + 1);
+        setCountA(prevCount => prevCount + 1);
         setTotalCount(prevCount => prevCount + 1);
         break;
       case 'countS':
