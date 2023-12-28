@@ -109,7 +109,7 @@ function ContractGenerator() {
     <>
             <Container>
             <div>
-      <p>Pressione as teclas "S", "D", "F", "G" ou "H" para somar +1:</p>
+      <p>Pressione as teclas "A", "S", "D", "F", "G" ou "H" para somar +1:</p>
     </div>
               <body>
               <div id="countA" onClick={handleClick}>
