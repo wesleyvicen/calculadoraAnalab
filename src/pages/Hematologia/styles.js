@@ -9,7 +9,7 @@ export const Container = styled.div`
     body {
         margin: 0;
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         grid-template-rows: repeat(1, 1fr);
         height: 80vh;
       }

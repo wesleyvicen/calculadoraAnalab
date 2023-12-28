@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container } from "./styles";
 
 function ContractGenerator() {
+  const [countA, setCountA] = useState(0);
   const [countS, setCountS] = useState(0);
   const [countD, setCountD] = useState(0);
   const [countF, setCountF] = useState(0);
@@ -12,6 +13,13 @@ function ContractGenerator() {
   useEffect(() => {
     function handleKeyDown(event) {
       switch (event.key) {
+        case 'a':
+        case 'A':
+          if (totalCount + 1 <= 100) {
+            setCountA(prevCount => prevCount + 1);
+            setTotalCount(prevCount => prevCount + 1);
+          }
+          break;
         case 's':
         case 'S':
           if (totalCount + 1 <= 100) {
@@ -68,6 +76,10 @@ function ContractGenerator() {
 
   function handleClick(event) {
     switch (event.target.id) {
+      case 'countA':
+        setCountS(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
       case 'countS':
         setCountS(prevCount => prevCount + 1);
         setTotalCount(prevCount => prevCount + 1);
@@ -100,7 +112,9 @@ function ContractGenerator() {
       <p>Pressione as teclas "S", "D", "F", "G" ou "H" para somar +1:</p>
     </div>
               <body>
-            
+              <div id="countA" onClick={handleClick}>
+      <p>SEG: <b><br/>{countA}</b> <br/>"A"</p>
+    </div>
     <div id="countS" onClick={handleClick}>
       <p>LT: <b><br/>{countS}</b> <br/>"S"</p>
     </div>
