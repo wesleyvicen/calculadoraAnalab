@@ -16,6 +16,13 @@ export default function Calculadora() {
                         <em className="fa fa-credit-card"></em> CALCULADORA DE ÍONS
                     </Link>
                 </div>
+
+                <div className={"divw"}>
+                <Link className={"whatsapp"} to={"/hematologia"}>
+                        <em className="fa fa-credit-card"></em> CALCULADORA DE HEMATOLOGIA
+                    </Link>
+                    
+                </div>
                 </div>
             </Container>
             <Row>
