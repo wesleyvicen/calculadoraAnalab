@@ -65,9 +65,33 @@ function ContractGenerator() {
     }
   }, [totalCount]);
 
-  
 
- 
+  function handleClick(event) {
+    switch (event.target.id) {
+      case 'countS':
+        setCountS(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
+      case 'countD':
+        setCountD(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
+      case 'countF':
+        setCountF(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
+      case 'countG':
+        setCountG(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
+      case 'countH':
+        setCountH(prevCount => prevCount + 1);
+        setTotalCount(prevCount => prevCount + 1);
+        break;
+      default:
+        break;
+    }
+  }
 
   return (
     <>
@@ -77,19 +101,19 @@ function ContractGenerator() {
     </div>
               <body>
             
-    <div>
+    <div id="countS" onClick={handleClick}>
       <p>LT: <b><br/>{countS}</b> <br/>"S"</p>
     </div>
-    <div>
+    <div id="countD"  onClick={handleClick}>
       <p>EOS: <b><br/>{countD}</b> <br/> "D"</p>
     </div>
-    <div>
+    <div id="countF"  onClick={handleClick}>
       <p>MON: <b><br/>{countF}</b> <br/> "F"</p>
     </div>
-    <div>
+    <div id="countG"  onClick={handleClick}>
       <p>BAST: <b><br/>{countG}</b> <br/> "G"</p>
     </div>
-    <div>
+    <div id="countH"  onClick={handleClick}>
       <p>LA: <b><br/>{countH}</b> <br/> "H"</p>
     </div>
     
