@@ -1,160 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { Container } from "./styles";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Container,
+  Header,
+  Board,
+  CounterCard,
+  CounterLabel,
+  CounterValue,
+  CounterKey,
+  Footer,
+  Total,
+  ResetButton,
+} from "./styles";
 
-function ContractGenerator() {
-  const [countA, setCountA] = useState(0);
-  const [countS, setCountS] = useState(0);
-  const [countD, setCountD] = useState(0);
-  const [countF, setCountF] = useState(0);
-  const [countG, setCountG] = useState(0);
-  const [countH, setCountH] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+const MAX_TOTAL = 100;
+const INITIAL_COUNTS = { a: 0, s: 0, d: 0, f: 0, g: 0, h: 0 };
+const COUNTERS = [
+  { id: "a", label: "SEG", keyLabel: "A" },
+  { id: "s", label: "LT", keyLabel: "S" },
+  { id: "d", label: "EOS", keyLabel: "D" },
+  { id: "f", label: "MON", keyLabel: "F" },
+  { id: "g", label: "BAST", keyLabel: "G" },
+  { id: "h", label: "LA", keyLabel: "H" },
+];
+
+function Hematologia() {
+  const [counts, setCounts] = useState(INITIAL_COUNTS);
+  const [blinkTokens, setBlinkTokens] = useState(INITIAL_COUNTS);
+  const [lastPressedKey, setLastPressedKey] = useState(null);
+  const hasReachedLimit = useRef(false);
+
+  const totalCount = useMemo(
+    () => Object.values(counts).reduce((sum, value) => sum + value, 0),
+    [counts]
+  );
+
+  function incrementCounter(counterId) {
+    setLastPressedKey(counterId);
+    setBlinkTokens((prev) => ({ ...prev, [counterId]: prev[counterId] + 1 }));
+    setCounts((prev) => {
+      const currentTotal = Object.values(prev).reduce((sum, value) => sum + value, 0);
+      if (currentTotal >= MAX_TOTAL) {
+        return prev;
+      }
+
+      return { ...prev, [counterId]: prev[counterId] + 1 };
+    });
+  }
+
+  function resetCounters() {
+    setCounts(INITIAL_COUNTS);
+    setBlinkTokens(INITIAL_COUNTS);
+    setLastPressedKey(null);
+    hasReachedLimit.current = false;
+  }
 
   useEffect(() => {
     function handleKeyDown(event) {
-      switch (event.key) {
-        case 'a':
-        case 'A':
-          if (totalCount + 1 <= 100) {
-            setCountA(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
+      const pressedKey = event.key.toLowerCase();
+
+      if (pressedKey === "0") {
+        setCounts(INITIAL_COUNTS);
+        setBlinkTokens(INITIAL_COUNTS);
+        setLastPressedKey(null);
+        hasReachedLimit.current = false;
+        return;
+      }
+
+      if (INITIAL_COUNTS[pressedKey] !== undefined) {
+        setLastPressedKey(pressedKey);
+        setBlinkTokens((prev) => ({ ...prev, [pressedKey]: prev[pressedKey] + 1 }));
+        setCounts((prev) => {
+          const currentTotal = Object.values(prev).reduce((sum, value) => sum + value, 0);
+          if (currentTotal >= MAX_TOTAL) {
+            return prev;
           }
-          break;
-        case 's':
-        case 'S':
-          if (totalCount + 1 <= 100) {
-            setCountS(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
-          }
-          break;
-        case 'd':
-        case 'D':
-          if (totalCount + 1 <= 100) {
-            setCountD(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
-          }
-          break;
-        case 'f':
-        case 'F':
-          if (totalCount + 1 <= 100) {
-            setCountF(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
-          }
-          break;
-        case 'g':
-        case 'G':
-          if (totalCount + 1 <= 100) {
-            setCountG(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
-          }
-          break;
-        case 'h':
-        case 'H':
-          if (totalCount + 1 <= 100) {
-            setCountH(prevCount => prevCount + 1);
-            setTotalCount(prevCount => prevCount + 1);
-          }
-          break;
-          case '0':
-        setCountS(0);
-        setCountD(0);
-        setCountF(0);
-        setCountG(0);
-        setCountH(0);
-        setTotalCount(0);
-        break;
-        default:
-          break;
+
+          return { ...prev, [pressedKey]: prev[pressedKey] + 1 };
+        });
       }
     }
-  
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [totalCount, setCountS, setCountD, setCountF, setCountG, setCountH, setTotalCount]);
-  
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
-    if (totalCount === 100) {
-      alert('A soma total dos contadores atingiu 100!');
+    if (totalCount === MAX_TOTAL && !hasReachedLimit.current) {
+      hasReachedLimit.current = true;
+      alert("A soma total dos contadores atingiu 100.");
     }
   }, [totalCount]);
 
-
-  function handleClick(event) {
-    switch (event.target.id) {
-      case 'countA':
-        setCountA(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-      case 'countS':
-        setCountS(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-      case 'countD':
-        setCountD(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-      case 'countF':
-        setCountF(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-      case 'countG':
-        setCountG(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-      case 'countH':
-        setCountH(prevCount => prevCount + 1);
-        setTotalCount(prevCount => prevCount + 1);
-        break;
-        case 'count0':
-        setCountS(0);
-        setCountD(0);
-        setCountF(0);
-        setCountG(0);
-        setCountH(0);
-        setTotalCount(0);
-        break;
-      default:
-        break;
-    }
-  }
-
   return (
-    <>
-            <Container>
-            <div>
-      <p>Pressione as teclas "A", "S", "D", "F", "G" ou "H" para somar +1:</p>
-    </div>
-              <body>
-              <div id="countA" onClick={handleClick}>
-      <p>SEG: <b><br/>{countA}</b> <br/>"A"</p>
-    </div>
-    <div id="countS" onClick={handleClick}>
-      <p>LT: <b><br/>{countS}</b> <br/>"S"</p>
-    </div>
-    <div id="countD"  onClick={handleClick}>
-      <p>EOS: <b><br/>{countD}</b> <br/> "D"</p>
-    </div>
-    <div id="countF"  onClick={handleClick}>
-      <p>MON: <b><br/>{countF}</b> <br/> "F"</p>
-    </div>
-    <div id="countG"  onClick={handleClick}>
-      <p>BAST: <b><br/>{countG}</b> <br/> "G"</p>
-    </div>
-    <div id="countH"  onClick={handleClick}>
-      <p>LA: <b><br/>{countH}</b> <br/> "H"</p>
-    </div>
-    
-    </body>
-    <div id="count0" onClick={handleClick}>
-      <p><b>Total: {totalCount <= 100 ? totalCount : 100}</b></p>
-    </div>
+    <Container>
+      <Header>Pressione as teclas "A", "S", "D", "F", "G" ou "H" para somar +1:</Header>
+
+      <Board>
+        {COUNTERS.map((counter) => (
+          <CounterCard
+            key={counter.id}
+            type="button"
+            onClick={() => incrementCounter(counter.id)}
+            aria-label={`Somar ${counter.label}`}
+            $blinkToken={blinkTokens[counter.id]}
+            $isLastPressed={lastPressedKey === counter.id}
+          >
+            <CounterLabel>{counter.label}</CounterLabel>
+            <CounterValue>{counts[counter.id]}</CounterValue>
+            <CounterKey>"{counter.keyLabel}"</CounterKey>
+          </CounterCard>
+        ))}
+      </Board>
+
+      <Footer>
+        <Total>Total: {totalCount}</Total>
+        <ResetButton type="button" onClick={resetCounters}>
+          Resetar (tecla 0)
+        </ResetButton>
+      </Footer>
     </Container>
-    </>
   );
 }
 
-export default ContractGenerator;
-
+export default Hematologia;

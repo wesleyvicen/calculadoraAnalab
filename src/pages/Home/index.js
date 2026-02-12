@@ -1,33 +1,45 @@
 import React from "react";
-import { Container, Row } from "./styles";
+import {
+  Container,
+  Hero,
+  Title,
+  Subtitle,
+  MenuGrid,
+  MenuCard,
+  MenuTitle,
+  MenuDescription,
+  Shortcut,
+} from "./styles";
 
-import "materialize-css";
+import "materialize-css/dist/css/materialize.min.css";
 
 import { Link } from "react-router-dom";
 
-export default function Calculadora() {
+export default function Home() {
+  return (
+    <Container>
+      <Hero>
+        <Title>ANALAB</Title>
+        <Subtitle>Selecione uma ferramenta para iniciar os cálculos laboratoriais.</Subtitle>
+      </Hero>
 
-    return (
-        <>
-            <Container>
-            <div className={"box"}>
-                <div className={"divw"}>
-                    <Link className={"whatsapp"} to={"/calculadora"}>
-                        <em className="fa fa-credit-card"></em> CALCULADORA DE ÍONS
-                    </Link>
-                </div>
+      <MenuGrid>
+        <MenuCard as={Link} to="/calculadora">
+          <MenuTitle>
+            <em className="fa fa-flask" aria-hidden="true" /> Calculadora de Íons
+          </MenuTitle>
+          <MenuDescription>Calcule rapidamente o BIC usando sódio, potássio e cloro.</MenuDescription>
+          <Shortcut>Abrir módulo</Shortcut>
+        </MenuCard>
 
-                <div className={"divw"}>
-                <Link className={"whatsapp"} to={"/hematologia"}>
-                        <em className="fa fa-credit-card"></em> CALCULADORA DE HEMATOLOGIA
-                    </Link>
-                    
-                </div>
-                </div>
-            </Container>
-            <Row>
-                
-            </Row>
-        </>
-    );
+        <MenuCard as={Link} to="/hematologia">
+          <MenuTitle>
+            <em className="fa fa-bar-chart" aria-hidden="true" /> Calculadora de Hematologia
+          </MenuTitle>
+          <MenuDescription>Faça contagem por teclas e acompanhe o total em tempo real.</MenuDescription>
+          <Shortcut>Abrir módulo</Shortcut>
+        </MenuCard>
+      </MenuGrid>
+    </Container>
+  );
 }

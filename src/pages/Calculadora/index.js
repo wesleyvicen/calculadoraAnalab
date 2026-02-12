@@ -1,65 +1,101 @@
-import React, { useState, useEffect } from "react";
-import { Container } from "./styles";
+import React, { useMemo, useState } from "react";
+import {
+  Container,
+  Header,
+  Formula,
+  InputsGrid,
+  Field,
+  Label,
+  Input,
+  ResultCard,
+  ResultLabel,
+  ResultValue,
+  Actions,
+  ResetButton,
+} from "./styles";
 
-export default function App() {
-    const [valorSodio, setValorSodio] = useState(0);
-    const [valorPotassio, setValorPotassio] = useState(0);
-    const [valorCloro, setValorCloro] = useState(0);
-    const [valorBic, setValorBic] = useState(0);
+function toNumber(value) {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
-    useEffect(() => {
-       
-        function handleChangeInput() {
-            if (isNaN(valorSodio)) {
-                setValorSodio(0);
-            }
-            if (isNaN(valorPotassio)) {
-                setValorPotassio(0);
-            }
-            if (isNaN(valorCloro)) {
-                setValorCloro(0);
-            }
-            if (isNaN(valorBic)) {
-                setValorBic(0);
-            }
-        const valorBicTotal = ((parseFloat(valorSodio) + parseFloat(valorPotassio)) - parseFloat(valorCloro)) - 19
-            if(valorCloro !== 0 || valorPotassio !== 0 || valorSodio !== 0)
-            setValorBic(valorBicTotal)
-        }
-       
-        handleChangeInput();
-    }, [valorSodio, valorPotassio, valorCloro, valorBic]);
+export default function Calculadora() {
+  const [valorSodio, setValorSodio] = useState("");
+  const [valorPotassio, setValorPotassio] = useState("");
+  const [valorCloro, setValorCloro] = useState("");
 
-    return (
-        <>
-            <Container>
-                    <div className={"divw"}>
-                        <b>Calculadora de Íons</b>
-                    </div>
-                <div className={"boxImage"}>
-                    <form>
-                        <div className="group">
-                            <label>Valor do SÓDIO:</label>
-                            <input type="number" required autoFocus={true} onChange={(e) => setValorSodio(e.target.value)} placeholder={"Digite aqui o valor do Sódio"} />
-                        </div>
+  const valorBic = useMemo(() => {
+    const sodio = toNumber(valorSodio);
+    const potassio = toNumber(valorPotassio);
+    const cloro = toNumber(valorCloro);
 
-                        <div className="group">
-                            <label>Valor do POTÁSSIO:</label>
-                            <input type="number" required onChange={(e) => setValorPotassio(e.target.value)} placeholder={"Digite aqui o valor do Potássio"} />
-                        </div>
+    if (sodio === 0 && potassio === 0 && cloro === 0) {
+      return 0;
+    }
 
-                        <div className="group">
-                            <label>Valor do CLORO:</label>
-                            <input type="number" required onChange={(e) => setValorCloro(e.target.value)} placeholder={"Digite aqui o valor do Cloro"} />
-                        </div>
-                    </form>
-                </div>
-                <div className={"boxTable"}>
-                    <div className={"divw"}>
-                        <b>Resultado de BIC é: {valorBic}</b>
-                    </div>
-                </div>
-            </Container>
-        </>
-    );
+    return sodio + potassio - cloro - 19;
+  }, [valorSodio, valorPotassio, valorCloro]);
+
+  function limparCampos() {
+    setValorSodio("");
+    setValorPotassio("");
+    setValorCloro("");
+  }
+
+  return (
+    <Container>
+      <Header>Calculadora de Íons</Header>
+      <Formula>BIC = (Sódio + Potássio) - Cloro - 19</Formula>
+
+      <InputsGrid>
+        <Field>
+          <Label htmlFor="sodio">Valor do Sódio</Label>
+          <Input
+            id="sodio"
+            type="number"
+            inputMode="decimal"
+            autoFocus
+            value={valorSodio}
+            onChange={(e) => setValorSodio(e.target.value)}
+            placeholder="Ex: 140"
+          />
+        </Field>
+
+        <Field>
+          <Label htmlFor="potassio">Valor do Potássio</Label>
+          <Input
+            id="potassio"
+            type="number"
+            inputMode="decimal"
+            value={valorPotassio}
+            onChange={(e) => setValorPotassio(e.target.value)}
+            placeholder="Ex: 4.2"
+          />
+        </Field>
+
+        <Field>
+          <Label htmlFor="cloro">Valor do Cloro</Label>
+          <Input
+            id="cloro"
+            type="number"
+            inputMode="decimal"
+            value={valorCloro}
+            onChange={(e) => setValorCloro(e.target.value)}
+            placeholder="Ex: 103"
+          />
+        </Field>
+      </InputsGrid>
+
+      <ResultCard>
+        <ResultLabel>Resultado de BIC</ResultLabel>
+        <ResultValue>{valorBic}</ResultValue>
+      </ResultCard>
+
+      <Actions>
+        <ResetButton type="button" onClick={limparCampos}>
+          Limpar Campos
+        </ResetButton>
+      </Actions>
+    </Container>
+  );
 }

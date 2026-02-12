@@ -3,18 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^4.11.3",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "font-awesome": "^4.7.0",
     "materialize-css": "^1.0.0-rc.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-materialize": "^3.9.8",
-    "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.1",
-    "styled-components": "^5.2.3"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^6",
+    "react-scripts": "^5.0.1",
+    "styled-components": "^6.3.9"
   },
   "scripts": {
     "start": "react-scripts start",

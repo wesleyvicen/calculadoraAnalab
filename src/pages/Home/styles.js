@@ -1,123 +1,120 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
-export const Container = styled.div`
-    .logo {
-        display: flex;
-        max-width: 250px;
-        max-height: 95px;
-        margin: 4% auto 1%;
-        color:white;
-    }
-
-    .divw {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .whatsapp {
-        background-color: #225599;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-top: 15px;
-        text-align: center;
-        text-decoration: none;
-        margin-bottom: 20px;
-    }
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
-export const Row = styled.div`
+export const Container = styled.div`
+  margin: 24px auto;
+  width: min(1100px, calc(100% - 24px));
+  border: 1px solid #d6dbe5;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.16), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.16), transparent 46%),
+    linear-gradient(180deg, #f8fafc 0%, #edf2f8 100%);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+  padding: 28px;
 
-.center-align{
-      padding: 10px 5px;
-    text-align: center;
-    border-radius: 2px;
-    }
-    a{
-      text-decoration: none;
-    }
-    h5{
-      font-size: 1.64rem;
-    line-height: 110%;
-    margin: 0.6rem 0 1% ;
+  @media (max-width: 740px) {
+    padding: 18px;
+  }
+`;
 
-}
+export const Hero = styled.header`
+  text-align: center;
+  margin-bottom: 24px;
+  animation: ${fadeInUp} 420ms ease;
+`;
 
-.colorWhite{
-  color:white;
-}
-.black-text {
-    color: #000 !important;
-}
+export const Title = styled.h1`
+  margin: 0;
+  color: #0f172a;
+  letter-spacing: 0.08em;
+  font-size: clamp(34px, 6vw, 58px);
+  font-weight: 800;
+`;
 
-h6 {
-    font-size: 1.15rem;
-    line-height: 110%;
-    margin: -.7666666667rem 0 .6rem 2%;
+export const Subtitle = styled.p`
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: clamp(15px, 2vw, 19px);
+`;
 
-}
+export const MenuGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 400;
-    line-height: 1.3;
-}
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+`;
 
-.fa {
-    display: inline-block;
-    font: normal normal normal 14px/1 FontAwesome;
-    font-size: inherit;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+export const MenuCard = styled.a`
+  display: block;
+  text-decoration: none;
+  border: 1px solid #c9d5e8;
+  border-radius: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  color: inherit;
+  animation: ${fadeInUp} 500ms ease both;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 
-.MuiCardContent-root{
-  padding:0!important;
-  border:0px;
-}
+  &:nth-child(2) {
+    animation-delay: 70ms;
+  }
 
+  &:hover {
+    transform: translateY(-3px);
+    border-color: #93c5fd;
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.12);
+  }
 
-.MuiCard-root{
-  margin-bottom:10px;
-  @media only screen and (min-width: 320px) {
-  
- h5{
+  &:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+  }
+`;
 
-  font-size: 1.4rem;
-    line-height: 110%;
-    margin: 0.6rem 10px 3% ;
- }
+export const MenuTitle = styled.h2`
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(22px, 3vw, 30px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
-}
+  .fa {
+    font-size: 0.92em;
+    color: #1d4ed8;
+  }
+`;
 
-@media only screen and (min-width: 620px) {
+export const MenuDescription = styled.p`
+  margin: 10px 0 16px;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.5;
+`;
 
-  margin: 15px 100px;
-  h5{
-      font-size: 1.6rem;
-    line-height: 110%;
-    margin: 0.6rem 2%;
-
-}
-
-}
-@media only screen and (min-width: 920px) {
-
-  margin: 20px 150px;
-
-}
-@media only screen and (min-width: 1200px) {
-
-  margin: 20px 200px;
-
-}
-@media only screen and (min-width: 1400px) {
-
-  margin: 20px 250px;
-
-}
-}
-    }
+export const Shortcut = styled.span`
+  display: inline-block;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: #dbeafe;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 `;

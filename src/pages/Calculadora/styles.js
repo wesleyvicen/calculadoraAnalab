@@ -1,128 +1,141 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-    font-family: "Roboto";
-    border-radius: 15px;
-    padding: 15px 0;
-    background: white;
+  margin: 24px auto;
+  width: min(920px, calc(100% - 24px));
+  border: 1px solid #d5d8de;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  box-shadow: 0 18px 32px rgba(20, 36, 61, 0.12);
+  padding: 24px;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 
-    .box {
-        background: #fff;
-    }
+  @media (max-width: 760px) {
+    padding: 18px;
+  }
+`;
 
-    .boxImage {
-        margin: 0 auto;
-    }
+export const Header = styled.h1`
+  margin: 0;
+  text-align: center;
+  font-size: clamp(28px, 3.2vw, 44px);
+  color: #111827;
+`;
 
-    .logo {
-        display: flex;
-        max-width: 250px;
-        max-height: 95px;
-        margin: 2% auto 5%;
-    }
+export const Formula = styled.p`
+  margin: 8px 0 24px;
+  text-align: center;
+  color: #4b5563;
+  font-size: clamp(14px, 1.4vw, 18px);
+`;
 
-    .item {
-        text-align: center;
-        flex-grow: 1;
-    }
+export const InputsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 
-    * {
-        box-sizing: border-box;
-    }
-    tr:nth-child(odd) {
-        background-color: #fff;
-    }
-    tr:nth-child(even) {
-        background-color: #f5f5f5;
-    }
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+`;
 
-    .group {
-        flex: 1;
-        margin: 0 15px 45px;
-    }
-    input,
-    select {
-        font-size: 18px;
-        padding: 10px 10px 10px 5px;
-        width: 100%;
-        border: none;
-        border-bottom: 1px solid black;
-    }
+export const Field = styled.div`
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 12px;
+`;
 
-    input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-    }
-    input[type="number"] {
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
+export const Label = styled.label`
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 700;
+`;
 
-    select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        text-indent: 1px;
-        text-overflow: "";
-        background: transparent;
-    }
-    .whatsapp {
-        background-color: black;
-        color: white;
-        padding: 8px 15px;
-        border-radius: 5px;
-        margin-top: 15px;
-        text-align: center;
-        text-decoration: none;
-    }
-    .divw {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-    }
+export const Input = styled.input`
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 17px;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 
-    textarea:focus,
-    input:focus,
-    select:focus {
-        box-shadow: 0 0 0 0;
-        border-bottom: solid black 1.5px;
-        outline-style: none;
-    }
+  &::placeholder {
+    color: #9ca3af;
+  }
 
-    label {
-        color: #999;
-        font-size: 18px;
-        font-weight: normal;
-    }
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
 
-    table {
-        width: 100%;
-        display: table;
-        border-collapse: collapse;
-        border-spacing: 0;
-    }
-    tbody {
-        display: table-row-group;
-        vertical-align: middle;
-        border-color: inherit;
-    }
-    td {
-        text-align: center;
-        padding: 8px;
-    }
-    @media only screen and (min-width: 320px) {
-        margin: 15px 25px;
-    }
+  &[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
 
-    @media only screen and (min-width: 620px) {
-        margin: 15px 100px;
-    }
-    @media only screen and (min-width: 920px) {
-        margin: 20px 150px;
-    }
-    @media only screen and (min-width: 1200px) {
-        margin: 20px 200px;
-    }
-    @media only screen and (min-width: 1400px) {
-        margin: 20px 250px;
-    }
+  &[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+`;
+
+export const ResultCard = styled.div`
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  text-align: center;
+`;
+
+export const ResultLabel = styled.p`
+  margin: 0 0 4px;
+  color: #1e40af;
+  font-size: 16px;
+  font-weight: 700;
+`;
+
+export const ResultValue = styled.p`
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(38px, 5vw, 70px);
+  font-weight: 800;
+  line-height: 1;
+`;
+
+export const Actions = styled.div`
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+`;
+
+export const ResetButton = styled.button`
+  border: none;
+  border-radius: 12px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(29, 78, 216, 0.28);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &&:focus {
+    outline: none;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  }
 `;
