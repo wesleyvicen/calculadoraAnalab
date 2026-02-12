@@ -32,6 +32,7 @@ import {
   PauseButton,
   StopButton,
   TestButton,
+  AcknowledgeButton,
   StatusText,
 } from "./styles";
 
@@ -79,6 +80,7 @@ function createChannel(id, name, presetMinutes, toneIndex) {
     presetSeconds,
     remainingSeconds: presetSeconds,
     status: "idle",
+    alertPending: false,
     toneIndex,
   };
 }
@@ -142,9 +144,14 @@ export default function Cronometros() {
   const [editingNames, setEditingNames] = useState({});
   const [draftNames, setDraftNames] = useState({});
   const audioContextRef = useRef(null);
-  const previousStatusesRef = useRef({});
   const voicesReadyRef = useRef(false);
   const lastSavedNamesSignatureRef = useRef("");
+  const channelsRef = useRef(channels);
+  const alarmTimeoutsRef = useRef({});
+  const speechQueueRef = useRef([]);
+  const queuedSpeechIdsRef = useRef(new Set());
+  const isSpeakingRef = useRef(false);
+  const speakingChannelIdRef = useRef(null);
 
   const runningCount = useMemo(
     () => channels.filter((channel) => channel.status === "running").length,
@@ -155,9 +162,17 @@ export default function Cronometros() {
     [channels]
   );
   const hasActiveTimers = useMemo(
-    () => channels.some((channel) => channel.status === "running" || channel.status === "paused"),
+    () =>
+      channels.some(
+        (channel) =>
+          channel.status === "running" || channel.status === "paused" || channel.alertPending
+      ),
     [channels]
   );
+
+  useEffect(() => {
+    channelsRef.current = channels;
+  }, [channels]);
 
   const ensureAudioContext = useCallback(async () => {
     const BrowserAudioContext = window.AudioContext || window.webkitAudioContext;
@@ -206,13 +221,21 @@ export default function Cronometros() {
     [ensureAudioContext]
   );
 
-  const speakCompletion = useCallback((channelName) => {
-    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+  const processSpeechQueue = useCallback(() => {
+    if (isSpeakingRef.current || !("speechSynthesis" in window)) {
       return;
     }
 
-    const message = `${channelName} finalizou`;
-    const utterance = new SpeechSynthesisUtterance(message);
+    const nextItem = speechQueueRef.current.shift();
+    if (!nextItem) {
+      return;
+    }
+
+    queuedSpeechIdsRef.current.delete(nextItem.channelId);
+    isSpeakingRef.current = true;
+    speakingChannelIdRef.current = nextItem.channelId;
+
+    const utterance = new SpeechSynthesisUtterance(nextItem.message);
     utterance.lang = "pt-BR";
     utterance.rate = 1;
     utterance.pitch = 1;
@@ -226,8 +249,40 @@ export default function Cronometros() {
       utterance.voice = ptVoice;
     }
 
-    window.speechSynthesis.cancel();
+    const releaseAndContinue = () => {
+      isSpeakingRef.current = false;
+      speakingChannelIdRef.current = null;
+      processSpeechQueue();
+    };
+
+    utterance.onend = releaseAndContinue;
+    utterance.onerror = releaseAndContinue;
     window.speechSynthesis.speak(utterance);
+  }, []);
+
+  const enqueueCompletionSpeech = useCallback(
+    (channelId, channelName) => {
+      if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+        return;
+      }
+
+      if (speakingChannelIdRef.current === channelId || queuedSpeechIdsRef.current.has(channelId)) {
+        return;
+      }
+
+      speechQueueRef.current.push({
+        channelId,
+        message: `${channelName} finalizou`,
+      });
+      queuedSpeechIdsRef.current.add(channelId);
+      processSpeechQueue();
+    },
+    [processSpeechQueue]
+  );
+
+  const removeChannelSpeechFromQueue = useCallback((channelId) => {
+    speechQueueRef.current = speechQueueRef.current.filter((item) => item.channelId !== channelId);
+    queuedSpeechIdsRef.current.delete(channelId);
   }, []);
 
   useEffect(() => {
@@ -257,7 +312,7 @@ export default function Cronometros() {
           }
 
           if (channel.remainingSeconds <= 1) {
-            return { ...channel, remainingSeconds: 0, status: "completed" };
+            return { ...channel, remainingSeconds: 0, status: "completed", alertPending: true };
           }
 
           return { ...channel, remainingSeconds: channel.remainingSeconds - 1 };
@@ -268,16 +323,71 @@ export default function Cronometros() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const clearAlarmLoop = useCallback((channelId) => {
+    const timeoutId = alarmTimeoutsRef.current[channelId];
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      delete alarmTimeoutsRef.current[channelId];
+    }
+  }, []);
+
+  const triggerAlert = useCallback(
+    (channel) => {
+      void playAlarm(channel.toneIndex);
+      enqueueCompletionSpeech(channel.id, channel.name);
+    },
+    [playAlarm, enqueueCompletionSpeech]
+  );
+
+  const startAlarmLoop = useCallback(
+    (channelId) => {
+      clearAlarmLoop(channelId);
+
+      const tick = () => {
+        const currentChannel = channelsRef.current.find((channel) => channel.id === channelId);
+        if (!currentChannel || currentChannel.status !== "completed" || !currentChannel.alertPending) {
+          clearAlarmLoop(channelId);
+          return;
+        }
+
+        triggerAlert(currentChannel);
+        alarmTimeoutsRef.current[channelId] = window.setTimeout(tick, 3500);
+      };
+
+      tick();
+    },
+    [clearAlarmLoop, triggerAlert]
+  );
+
   useEffect(() => {
     channels.forEach((channel) => {
-      const previousStatus = previousStatusesRef.current[channel.id];
-      if (channel.status === "completed" && previousStatus !== "completed") {
-        void playAlarm(channel.toneIndex);
-        speakCompletion(channel.name);
+      const mustAlert = channel.status === "completed" && channel.alertPending;
+      const hasLoop = Boolean(alarmTimeoutsRef.current[channel.id]);
+
+      if (mustAlert && !hasLoop) {
+        startAlarmLoop(channel.id);
       }
-      previousStatusesRef.current[channel.id] = channel.status;
+
+      if (!mustAlert && hasLoop) {
+        clearAlarmLoop(channel.id);
+      }
     });
-  }, [channels, playAlarm, speakCompletion]);
+  }, [channels, clearAlarmLoop, startAlarmLoop]);
+
+  useEffect(
+    () => () => {
+      Object.values(alarmTimeoutsRef.current).forEach((timeoutId) => window.clearTimeout(timeoutId));
+      alarmTimeoutsRef.current = {};
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      speechQueueRef.current = [];
+      queuedSpeechIdsRef.current.clear();
+      isSpeakingRef.current = false;
+      speakingChannelIdRef.current = null;
+    },
+    []
+  );
 
   useEffect(() => {
     if (channelNamesSignature === lastSavedNamesSignatureRef.current) {
@@ -356,10 +466,11 @@ export default function Cronometros() {
             ...channel,
             remainingSeconds: channel.presetSeconds,
             status: "running",
+            alertPending: false,
           };
         }
 
-        return { ...channel, status: "running" };
+        return { ...channel, status: "running", alertPending: false };
       })
     );
   }
@@ -382,8 +493,18 @@ export default function Cronometros() {
               ...channel,
               remainingSeconds: channel.presetSeconds,
               status: "idle",
+              alertPending: false,
             }
           : channel
+      )
+    );
+  }
+
+  function acknowledgeCompletion(channelId) {
+    removeChannelSpeechFromQueue(channelId);
+    setChannels((prevChannels) =>
+      prevChannels.map((channel) =>
+        channel.id === channelId ? { ...channel, alertPending: false } : channel
       )
     );
   }
@@ -445,8 +566,15 @@ export default function Cronometros() {
       </InfoBanner>
 
       <Grid>
-        {channels.map((channel) => (
-          <TimerCard key={channel.id} $status={channel.status}>
+        {channels.map((channel) => {
+          const isAwaitingConfirmation = channel.status === "completed" && channel.alertPending;
+          const disableStart = channel.status === "running" || isAwaitingConfirmation;
+          const disablePause = channel.status !== "running" || isAwaitingConfirmation;
+          const disableStop = channel.status === "idle" || isAwaitingConfirmation;
+          const disableTest = isAwaitingConfirmation;
+
+          return (
+            <TimerCard key={channel.id} $status={channel.status}>
             <CardHeader>
               <CardTitle>{channel.name}</CardTitle>
               <ToneBadge>{TONE_PRESETS[channel.toneIndex % TONE_PRESETS.length].name}</ToneBadge>
@@ -507,23 +635,41 @@ export default function Cronometros() {
             </QuickPresets>
 
             <Actions>
-              <StartButton type="button" onClick={() => startChannel(channel.id)}>
+              <StartButton
+                type="button"
+                onClick={() => startChannel(channel.id)}
+                disabled={disableStart}
+              >
                 Iniciar
               </StartButton>
-              <PauseButton type="button" onClick={() => pauseChannel(channel.id)}>
+              <PauseButton
+                type="button"
+                onClick={() => pauseChannel(channel.id)}
+                disabled={disablePause}
+              >
                 Pausar
               </PauseButton>
-              <StopButton type="button" onClick={() => stopChannel(channel.id)}>
+              <StopButton type="button" onClick={() => stopChannel(channel.id)} disabled={disableStop}>
                 Parar
               </StopButton>
-              <TestButton type="button" onClick={() => playAlarm(channel.toneIndex)}>
+              <TestButton
+                type="button"
+                onClick={() => playAlarm(channel.toneIndex)}
+                disabled={disableTest}
+              >
                 Testar bip
               </TestButton>
             </Actions>
 
             <StatusText>Status: {getStatusLabel(channel.status)}</StatusText>
-          </TimerCard>
-        ))}
+            {channel.status === "completed" && channel.alertPending ? (
+              <AcknowledgeButton type="button" onClick={() => acknowledgeCompletion(channel.id)}>
+                Confirmar finalizacao
+              </AcknowledgeButton>
+            ) : null}
+            </TimerCard>
+          );
+        })}
       </Grid>
     </Container>
   );

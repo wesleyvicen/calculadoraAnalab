@@ -316,6 +316,13 @@ const baseAction = `
     transform: translateY(-1px);
     filter: brightness(1.03);
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: grayscale(0.2);
+    transform: none;
+  }
 `;
 
 export const StartButton = styled.button`
@@ -344,4 +351,22 @@ export const StatusText = styled.p`
   color: #334155;
   font-size: 13px;
   font-weight: 700;
+`;
+
+export const AcknowledgeButton = styled.button`
+  margin: 0 10px 10px;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &:hover {
+    filter: brightness(1.03);
+  }
 `;
