@@ -74,6 +74,10 @@ export const MenuCard = styled.a`
     animation-delay: 70ms;
   }
 
+  &:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
   &:hover {
     transform: translateY(-3px);
     border-color: #93c5fd;

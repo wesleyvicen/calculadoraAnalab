@@ -39,6 +39,16 @@ export default function Home() {
           <MenuDescription>Faça contagem por teclas e acompanhe o total em tempo real.</MenuDescription>
           <Shortcut>Abrir módulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/cronometros">
+          <MenuTitle>
+            <em className="fa fa-clock-o" aria-hidden="true" /> Cronometros Multiplos
+          </MenuTitle>
+          <MenuDescription>
+            Execute varias reacoes em paralelo com alarmes sonoros individuais ao finalizar.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );

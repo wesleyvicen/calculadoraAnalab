@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes as RouterRoutes, useLocation } from "react
 import Home from "./pages/Home";
 import Calculadora from "./pages/Calculadora";
 import Hematologia from "./pages/Hematologia";
+import Cronometros from "./pages/Cronometros";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -14,6 +15,8 @@ function getBackgroundClass(pathname) {
       return "hematologia";
     case "/calculadora":
       return "calculadora";
+    case "/cronometros":
+      return "cronometros";
     default:
       return "";
   }
@@ -42,6 +45,7 @@ function LocationAwareApp() {
         <Route path="/" element={<Home />} />
         <Route path="/calculadora" element={<Calculadora />} />
         <Route path="/hematologia" element={<Hematologia />} />
+        <Route path="/cronometros" element={<Cronometros />} />
       </RouterRoutes>
     </div>
   );
