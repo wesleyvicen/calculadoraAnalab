@@ -49,6 +49,17 @@ export default function Home() {
           </MenuDescription>
           <Shortcut>Abrir modulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/glicemia-estimada">
+          <MenuTitle>
+            <em className="fa fa-tint" aria-hidden="true" /> Glicemia Media Estimada
+          </MenuTitle>
+          <MenuDescription>
+            Informe o HbA1c e obtenha automaticamente a glicemia media em mg/dL, mmol/L e a
+            classificacao.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );

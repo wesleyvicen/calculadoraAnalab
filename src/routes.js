@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Calculadora from "./pages/Calculadora";
 import Hematologia from "./pages/Hematologia";
 import Cronometros from "./pages/Cronometros";
+import GlicemiaEstimada from "./pages/GlicemiaEstimada";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -17,6 +18,8 @@ function getBackgroundClass(pathname) {
       return "calculadora";
     case "/cronometros":
       return "cronometros";
+    case "/glicemia-estimada":
+      return "glicemia-estimada";
     default:
       return "";
   }
@@ -46,6 +49,7 @@ function LocationAwareApp() {
         <Route path="/calculadora" element={<Calculadora />} />
         <Route path="/hematologia" element={<Hematologia />} />
         <Route path="/cronometros" element={<Cronometros />} />
+        <Route path="/glicemia-estimada" element={<GlicemiaEstimada />} />
       </RouterRoutes>
     </div>
   );
