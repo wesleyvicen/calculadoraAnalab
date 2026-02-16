@@ -30,9 +30,19 @@ export const Container = styled.div`
 `;
 
 export const Hero = styled.header`
-  text-align: center;
   margin-bottom: 24px;
   animation: ${fadeInUp} 420ms ease;
+`;
+
+export const TopRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (max-width: 680px) {
+    flex-direction: column;
+  }
 `;
 
 export const Title = styled.h1`
@@ -47,6 +57,31 @@ export const Subtitle = styled.p`
   margin: 8px 0 0;
   color: #475569;
   font-size: clamp(15px, 2vw, 19px);
+  text-align: center;
+`;
+
+export const UserChip = styled.span`
+  display: inline-block;
+  margin-right: 8px;
+  margin-top: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e3a8a;
+  background: #dbeafe;
+`;
+
+export const LogoutButton = styled.button`
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #1d4ed8;
+  cursor: pointer;
 `;
 
 export const SearchRow = styled.div`

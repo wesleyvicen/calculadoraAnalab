@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Route, Routes as RouterRoutes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes as RouterRoutes,
+  useLocation,
+} from "react-router-dom";
 
 import Home from "./pages/Home";
 import Calculadora from "./pages/Calculadora";
@@ -10,6 +16,11 @@ import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
 import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
 import SaturacaoTransferrina from "./pages/SaturacaoTransferrina";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
+import { GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -57,18 +68,27 @@ function LocationAwareApp() {
   return (
     <div className="content">
       <RouterRoutes>
-        <Route path="/" element={<Home />} />
-        <Route path="/calculadora" element={<Calculadora />} />
-        <Route path="/hematologia" element={<Hematologia />} />
-        <Route path="/cronometros" element={<Cronometros />} />
-        <Route path="/glicemia-estimada" element={<GlicemiaEstimada />} />
-        <Route path="/depuracao-creatinina" element={<DepuracaoCreatinina />} />
-        <Route path="/filtracao-glomerular" element={<FiltracaoGlomerular />} />
-        <Route
-          path="/relacao-albumina-creatinina"
-          element={<RelacaoAlbuminaCreatinina />}
-        />
-        <Route path="/saturacao-transferrina" element={<SaturacaoTransferrina />} />
+        <Route element={<GuestRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/calculadora" element={<Calculadora />} />
+          <Route path="/hematologia" element={<Hematologia />} />
+          <Route path="/cronometros" element={<Cronometros />} />
+          <Route path="/glicemia-estimada" element={<GlicemiaEstimada />} />
+          <Route path="/depuracao-creatinina" element={<DepuracaoCreatinina />} />
+          <Route path="/filtracao-glomerular" element={<FiltracaoGlomerular />} />
+          <Route
+            path="/relacao-albumina-creatinina"
+            element={<RelacaoAlbuminaCreatinina />}
+          />
+          <Route path="/saturacao-transferrina" element={<SaturacaoTransferrina />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </RouterRoutes>
     </div>
   );

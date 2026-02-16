@@ -2,8 +2,11 @@ import React, { useMemo, useState } from "react";
 import {
   Container,
   Hero,
+  TopRow,
   Title,
   Subtitle,
+  UserChip,
+  LogoutButton,
   SearchRow,
   SearchInput,
   MenuGrid,
@@ -17,6 +20,7 @@ import {
 import "materialize-css/dist/css/materialize.min.css";
 
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MENU_ITEMS = [
   {
@@ -78,6 +82,7 @@ function normalizeText(value) {
 }
 
 export default function Home() {
+  const { user, signOut } = useAuth();
   const [query, setQuery] = useState("");
 
   const filteredItems = useMemo(() => {
@@ -95,7 +100,15 @@ export default function Home() {
   return (
     <Container>
       <Hero>
-        <Title>ANALAB</Title>
+        <TopRow>
+          <Title>LabSuite</Title>
+          <div>
+            {user?.email ? <UserChip>{user.email}</UserChip> : null}
+            <LogoutButton type="button" onClick={signOut}>
+              Sair
+            </LogoutButton>
+          </div>
+        </TopRow>
         <Subtitle>Selecione uma ferramenta para iniciar os cálculos laboratoriais.</Subtitle>
       </Hero>
 

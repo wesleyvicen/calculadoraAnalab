@@ -613,7 +613,7 @@ export default function Cronometros() {
     <Container>
       <Header>
         <HeaderBrand>
-          <HeaderLogo src={`${process.env.PUBLIC_URL}/logo_analab_tools.png`} alt="Analab Tools" />
+          <HeaderLogo src={`${process.env.PUBLIC_URL}/logo_analab_tools.png`} alt="LabSuite" />
           <HeaderTitle>Multiplo Marcador de Tempo</HeaderTitle>
         </HeaderBrand>
         <TopActions>
