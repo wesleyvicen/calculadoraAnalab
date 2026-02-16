@@ -6,6 +6,7 @@ import Calculadora from "./pages/Calculadora";
 import Hematologia from "./pages/Hematologia";
 import Cronometros from "./pages/Cronometros";
 import GlicemiaEstimada from "./pages/GlicemiaEstimada";
+import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -20,6 +21,8 @@ function getBackgroundClass(pathname) {
       return "cronometros";
     case "/glicemia-estimada":
       return "glicemia-estimada";
+    case "/depuracao-creatinina":
+      return "depuracao-creatinina";
     default:
       return "";
   }
@@ -50,6 +53,7 @@ function LocationAwareApp() {
         <Route path="/hematologia" element={<Hematologia />} />
         <Route path="/cronometros" element={<Cronometros />} />
         <Route path="/glicemia-estimada" element={<GlicemiaEstimada />} />
+        <Route path="/depuracao-creatinina" element={<DepuracaoCreatinina />} />
       </RouterRoutes>
     </div>
   );

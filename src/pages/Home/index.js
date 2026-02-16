@@ -60,6 +60,17 @@ export default function Home() {
           </MenuDescription>
           <Shortcut>Abrir modulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/depuracao-creatinina">
+          <MenuTitle>
+            <em className="fa fa-filter" aria-hidden="true" /> Depuracao de Creatinina
+          </MenuTitle>
+          <MenuDescription>
+            Calcule depuracao, depuracao corrigida, excrecao total e por kg com interpretacao
+            automatica.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );
