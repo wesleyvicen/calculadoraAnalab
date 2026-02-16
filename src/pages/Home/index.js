@@ -58,8 +58,8 @@ const MENU_ITEMS = [
   {
     to: "/relacao-albumina-creatinina",
     icon: "fa-tint",
-    title: "Relacao Albumina/Creatinina",
-    description: "Calcule o ACR em mg/g, com categoria automatica (A1, A2, A3) e interpretacao.",
+    title: "Relacao Microalbuminuria/Creatinina",
+    description: "Calcule a relacao microalbuminuria/creatinina (ACR) em mg/g, com categoria automatica (A1, A2, A3) e interpretacao.",
   },
   {
     to: "/saturacao-transferrina",

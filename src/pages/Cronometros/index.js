@@ -38,7 +38,7 @@ import {
 
 const MAX_MINUTES = 240;
 const DEFAULT_PRESET_MINUTES = 10;
-const QUICK_PRESET_MINUTES = [5, 10, 15, 30];
+const QUICK_PRESET_MINUTES = [1, 5, 10, 15, 30];
 const CHANNEL_NAMES_STORAGE_KEY = "analab_cronometros_channel_names_v1";
 
 const TONE_PRESETS = [
@@ -81,6 +81,7 @@ function createChannel(id, name, presetMinutes, toneIndex) {
     remainingSeconds: presetSeconds,
     status: "idle",
     alertPending: false,
+    completedAtMs: null,
     toneIndex,
   };
 }
@@ -130,6 +131,18 @@ function parsePresetInputToSeconds(rawValue) {
   return Math.min(MAX_MINUTES * 60, Math.max(1, totalSeconds));
 }
 
+function formatPresetInputFromSeconds(totalSeconds) {
+  const safeSeconds = Math.min(MAX_MINUTES * 60, Math.max(1, totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+
+  if (seconds === 0) {
+    return String(minutes);
+  }
+
+  return `${minutes}.${String(seconds).padStart(2, "0")}`;
+}
+
 function getProgressPercent(channel) {
   if (!channel.presetSeconds) {
     return 0;
@@ -139,8 +152,17 @@ function getProgressPercent(channel) {
   return Math.max(0, Math.min(100, Math.round((elapsed / channel.presetSeconds) * 100)));
 }
 
+function getCompletedElapsedSeconds(channel, nowMs) {
+  if (channel.status !== "completed" || !channel.completedAtMs) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor((nowMs - channel.completedAtMs) / 1000));
+}
+
 export default function Cronometros() {
   const [channels, setChannels] = useState(() => withCachedNames(INITIAL_CHANNELS));
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [editingNames, setEditingNames] = useState({});
   const [draftNames, setDraftNames] = useState({});
   const audioContextRef = useRef(null);
@@ -305,6 +327,7 @@ export default function Cronometros() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
+      setNowMs(Date.now());
       setChannels((prevChannels) =>
         prevChannels.map((channel) => {
           if (channel.status !== "running") {
@@ -312,7 +335,13 @@ export default function Cronometros() {
           }
 
           if (channel.remainingSeconds <= 1) {
-            return { ...channel, remainingSeconds: 0, status: "completed", alertPending: true };
+            return {
+              ...channel,
+              remainingSeconds: 0,
+              status: "completed",
+              alertPending: true,
+              completedAtMs: Date.now(),
+            };
           }
 
           return { ...channel, remainingSeconds: channel.remainingSeconds - 1 };
@@ -467,10 +496,11 @@ export default function Cronometros() {
             remainingSeconds: channel.presetSeconds,
             status: "running",
             alertPending: false,
+            completedAtMs: null,
           };
         }
 
-        return { ...channel, status: "running", alertPending: false };
+        return { ...channel, status: "running", alertPending: false, completedAtMs: null };
       })
     );
   }
@@ -494,6 +524,7 @@ export default function Cronometros() {
               remainingSeconds: channel.presetSeconds,
               status: "idle",
               alertPending: false,
+              completedAtMs: null,
             }
           : channel
       )
@@ -504,7 +535,7 @@ export default function Cronometros() {
     removeChannelSpeechFromQueue(channelId);
     setChannels((prevChannels) =>
       prevChannels.map((channel) =>
-        channel.id === channelId ? { ...channel, alertPending: false } : channel
+        channel.id === channelId ? { ...channel, alertPending: false, completedAtMs: null } : channel
       )
     );
   }
@@ -526,12 +557,43 @@ export default function Cronometros() {
         if (parsedPresetSeconds !== null) {
           updatedChannel.presetSeconds = parsedPresetSeconds;
           updatedChannel.presetMinutes = Math.floor(parsedPresetSeconds / 60);
+          updatedChannel.completedAtMs = null;
 
           if (channel.status !== "running") {
             updatedChannel.remainingSeconds = parsedPresetSeconds;
             if (channel.status === "completed") {
               updatedChannel.status = "idle";
             }
+          }
+        }
+
+        return updatedChannel;
+      })
+    );
+  }
+
+  function addQuickPreset(channelId, minutesToAdd) {
+    const incrementSeconds = Math.max(1, minutesToAdd * 60);
+
+    setChannels((prevChannels) =>
+      prevChannels.map((channel) => {
+        if (channel.id !== channelId) {
+          return channel;
+        }
+
+        const nextPresetSeconds = Math.min(MAX_MINUTES * 60, channel.presetSeconds + incrementSeconds);
+        const updatedChannel = {
+          ...channel,
+          presetInput: formatPresetInputFromSeconds(nextPresetSeconds),
+          presetSeconds: nextPresetSeconds,
+          presetMinutes: Math.floor(nextPresetSeconds / 60),
+        };
+
+        if (channel.status !== "running") {
+          updatedChannel.remainingSeconds = nextPresetSeconds;
+          updatedChannel.completedAtMs = null;
+          if (channel.status === "completed") {
+            updatedChannel.status = "idle";
           }
         }
 
@@ -627,9 +689,9 @@ export default function Cronometros() {
                 <QuickPresetButton
                   key={minutes}
                   type="button"
-                  onClick={() => changePreset(channel.id, String(minutes))}
+                  onClick={() => addQuickPreset(channel.id, minutes)}
                 >
-                  {minutes} min
+                  +{minutes} min
                 </QuickPresetButton>
               ))}
             </QuickPresets>
@@ -662,6 +724,11 @@ export default function Cronometros() {
             </Actions>
 
             <StatusText>Status: {getStatusLabel(channel.status)}</StatusText>
+            {channel.status === "completed" && channel.completedAtMs ? (
+              <StatusText>
+                Finalizado ha: {formatTime(getCompletedElapsedSeconds(channel, nowMs))}
+              </StatusText>
+            ) : null}
             {channel.status === "completed" && channel.alertPending ? (
               <AcknowledgeButton type="button" onClick={() => acknowledgeCompletion(channel.id)}>
                 Confirmar finalizacao

@@ -121,12 +121,17 @@ export const MenuTitle = styled.h2`
   color: #0f172a;
   font-size: clamp(22px, 3vw, 30px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 
   .fa {
     font-size: 0.92em;
     color: #1d4ed8;
+    flex: 0 0 auto;
+    margin-top: 2px;
   }
 `;
 
