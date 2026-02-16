@@ -52,6 +52,116 @@ export const Header = styled.h1`
   background: linear-gradient(90deg, #f9fafb 0%, #eef3fb 100%);
 `;
 
+export const FinishBanner = styled.div`
+  margin: 12px 14px 0;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+export const FinishText = styled.p`
+  margin: 0;
+  color: #92400e;
+  font-size: 15px;
+  font-weight: 700;
+`;
+
+export const FinishButton = styled.button`
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #d97706;
+  cursor: pointer;
+
+  &:hover {
+    background: #b45309;
+  }
+`;
+
+export const SetupCard = styled.section`
+  margin: 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fbff 100%);
+  padding: 14px;
+`;
+
+export const SetupTitle = styled.h2`
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: clamp(18px, 1.8vw, 24px);
+`;
+
+export const SetupGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+export const SetupField = styled.div`
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #dbe6f5;
+  border-radius: 10px;
+  padding: 10px;
+`;
+
+export const SetupLabel = styled.label`
+  display: block;
+  margin-bottom: 6px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+`;
+
+export const SetupInput = styled.input`
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 15px;
+  color: #0f172a;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  }
+
+  &[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  &[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+`;
+
+export const SetupButton = styled.button`
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  cursor: pointer;
+`;
+
 export const Board = styled.div`
   display: grid;
   min-height: 420px;
@@ -105,6 +215,13 @@ export const CounterCard = styled.button`
     transform: translateY(0);
   }
 
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+  }
+
   &&:focus {
     outline: none;
     background-color: inherit;
@@ -154,6 +271,13 @@ export const Total = styled.p`
   font-size: clamp(42px, 4vw, 84px);
   font-weight: 800;
   color: #0f172a;
+`;
+
+export const Observation = styled.p`
+  margin: 0;
+  font-size: clamp(16px, 1.8vw, 24px);
+  font-weight: 700;
+  color: #334155;
 `;
 
 export const ResetButton = styled.button`
