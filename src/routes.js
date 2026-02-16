@@ -24,6 +24,7 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import { AdminRoute, GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
 import { useAuth } from "./contexts/AuthContext";
+import AppNavbar from "./components/AppNavbar";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -110,7 +111,12 @@ function RootRoute() {
   }
 
   if (session) {
-    return <Home />;
+    return (
+      <>
+        <AppNavbar />
+        <Home />
+      </>
+    );
   }
 
   return <Institucional />;

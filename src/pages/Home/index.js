@@ -5,6 +5,7 @@ import {
   TopRow,
   Title,
   Subtitle,
+  UserActions,
   PlanRow,
   PlanChip,
   PlanInfo,
@@ -166,12 +167,12 @@ export default function Home() {
       <Hero>
         <TopRow>
           <Title>LabSuite</Title>
-          <div>
+          <UserActions>
             {displayName ? <UserChip>{displayName}</UserChip> : null}
             <LogoutButton type="button" onClick={signOut}>
               Sair
             </LogoutButton>
-          </div>
+          </UserActions>
         </TopRow>
         <Subtitle>Selecione uma ferramenta para iniciar os cálculos laboratoriais.</Subtitle>
         {plan ? (

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import AppNavbar from "./AppNavbar";
 
 function AuthCheckingScreen() {
   return (
@@ -58,7 +59,12 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <AppNavbar />
+      <Outlet />
+    </>
+  );
 }
 
 export function GuestRoute() {
@@ -90,5 +96,10 @@ export function AdminRoute() {
     return <Navigate to="/" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <AppNavbar />
+      <Outlet />
+    </>
+  );
 }

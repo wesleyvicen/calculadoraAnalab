@@ -25,6 +25,7 @@ export const Container = styled.div`
   padding: 28px;
 
   @media (max-width: 740px) {
+    margin: 12px auto;
     padding: 18px;
   }
 `;
@@ -42,6 +43,7 @@ export const TopRow = styled.div`
 
   @media (max-width: 680px) {
     flex-direction: column;
+    align-items: stretch;
   }
 `;
 
@@ -49,8 +51,25 @@ export const Title = styled.h1`
   margin: 0;
   color: #0f172a;
   letter-spacing: 0.08em;
-  font-size: clamp(34px, 6vw, 58px);
+  font-size: clamp(28px, 6vw, 52px);
   font-weight: 800;
+
+  @media (max-width: 680px) {
+    text-align: center;
+  }
+`;
+
+export const UserActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 680px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 `;
 
 export const Subtitle = styled.p`
@@ -89,8 +108,6 @@ export const PlanInfo = styled.p`
 
 export const UserChip = styled.span`
   display: inline-block;
-  margin-right: 8px;
-  margin-top: 6px;
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;
@@ -100,7 +117,6 @@ export const UserChip = styled.span`
 `;
 
 export const LogoutButton = styled.button`
-  margin-top: 6px;
   border: none;
   border-radius: 999px;
   padding: 7px 12px;

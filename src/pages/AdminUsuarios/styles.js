@@ -88,4 +88,9 @@ export const ToggleButton = styled.button`
   color: #ffffff;
   background: #2563eb;
   cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
 `;

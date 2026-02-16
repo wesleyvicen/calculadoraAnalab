@@ -59,6 +59,12 @@ export default function AdminUsuarios() {
 
   async function toggleActive(profile) {
     if (!session) return;
+    const role = String(profile?.role || "").toLowerCase();
+    if (role === "admin") {
+      setError("Usuários com perfil admin não podem ter o status alterado por esta tela.");
+      setInfo("");
+      return;
+    }
 
     const profileIdentifier = profile.id;
     if (!profileIdentifier) {
@@ -117,6 +123,7 @@ export default function AdminUsuarios() {
               const key = profile.id;
               const isWorking = workingKey === key;
               const isActive = Boolean(profile.active);
+              const isAdminProfile = String(profile.role || "").toLowerCase() === "admin";
               return (
                 <tr key={key || `profile-${index}`}>
                   <Td>{profile.full_name || profile.name || profile.nome || "-"}</Td>
@@ -128,10 +135,16 @@ export default function AdminUsuarios() {
                   <Td>
                     <ToggleButton
                       type="button"
-                      disabled={isWorking}
+                      disabled={isWorking || isAdminProfile}
                       onClick={() => toggleActive(profile)}
                     >
-                      {isWorking ? "Salvando..." : isActive ? "Desativar" : "Ativar"}
+                      {isAdminProfile
+                        ? "Protegido"
+                        : isWorking
+                          ? "Salvando..."
+                          : isActive
+                            ? "Desativar"
+                            : "Ativar"}
                     </ToggleButton>
                   </Td>
                 </tr>
