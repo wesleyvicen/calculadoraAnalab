@@ -146,6 +146,8 @@ export default function Home() {
     return "Trial expirado";
   }, [isFreePlan, trialDaysRemaining]);
 
+  const isPaidPlan = plan === "paid";
+
   const trialPeriodText = useMemo(() => {
     if (!isFreePlan) return "";
     const startText = formatDatePtBr(trialStartsAt);
@@ -175,7 +177,7 @@ export default function Home() {
         {plan ? (
           <PlanRow>
             <PlanChip $isFree={isFreePlan}>
-              Plano: {planLabel}
+              {isPaidPlan ? "Versão paga sem limites" : `Plano: ${planLabel}`}
               {isFreePlan && trialStatusText ? ` • ${trialStatusText}` : ""}
             </PlanChip>
             {isFreePlan && trialPeriodText ? <PlanInfo>{trialPeriodText}</PlanInfo> : null}
