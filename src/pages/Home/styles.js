@@ -49,6 +49,32 @@ export const Subtitle = styled.p`
   font-size: clamp(15px, 2vw, 19px);
 `;
 
+export const SearchRow = styled.div`
+  margin: 0 auto 18px;
+  width: min(720px, 100%);
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  border: 1px solid #bfcee4;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.85);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+
+  &::placeholder {
+    color: #6b7280;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  }
+`;
+
 export const MenuGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -121,4 +147,12 @@ export const Shortcut = styled.span`
   background: #dbeafe;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+`;
+
+export const EmptyState = styled.p`
+  margin: 14px 0 0;
+  text-align: center;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 600;
 `;
