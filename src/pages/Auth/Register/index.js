@@ -10,6 +10,7 @@ import {
   Input,
   Button,
   Message,
+  HelpText,
   FooterLinks,
   AuthLink,
 } from "../styles";
@@ -46,6 +47,7 @@ export default function Register() {
       <Card>
         <Title>Cadastro</Title>
         <Subtitle>Crie seu acesso no sistema.</Subtitle>
+        <HelpText>Teste gratuito por 7 dias após o cadastro.</HelpText>
         <form onSubmit={handleSubmit}>
           <Field>
             Nome completo

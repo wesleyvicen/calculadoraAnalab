@@ -5,6 +5,9 @@ import {
   TopRow,
   Title,
   Subtitle,
+  PlanRow,
+  PlanChip,
+  PlanInfo,
   UserChip,
   LogoutButton,
   SearchRow,
@@ -26,50 +29,50 @@ const MENU_ITEMS = [
   {
     to: "/calculadora",
     icon: "fa-flask",
-    title: "Calculadora de Ions",
-    description: "Calcule rapidamente o BIC usando sodio, potassio e cloro.",
+    title: "Calculadora de Íons",
+    description: "Calcule rapidamente o BIC usando sódio, potássio e cloro.",
   },
   {
     to: "/hematologia",
     icon: "fa-bar-chart",
     title: "Calculadora de Hematologia",
-    description: "Faca contagem por teclas e acompanhe o total em tempo real.",
+    description: "Faça contagem por teclas e acompanhe o total em tempo real.",
   },
   {
     to: "/cronometros",
     icon: "fa-clock-o",
-    title: "Cronometros Multiplos",
-    description: "Execute varias reacoes em paralelo com alarmes sonoros individuais ao finalizar.",
+    title: "Cronômetros Múltiplos",
+    description: "Execute várias reações em paralelo com alarmes sonoros individuais ao finalizar.",
   },
   {
     to: "/glicemia-estimada",
     icon: "fa-tint",
-    title: "Glicemia Media Estimada",
-    description: "Informe o HbA1c e obtenha automaticamente a glicemia media em mg/dL, mmol/L e a classificacao.",
+    title: "Glicemia Média Estimada",
+    description: "Informe o HbA1c e obtenha automaticamente a glicemia média em mg/dL, mmol/L e a classificação.",
   },
   {
     to: "/depuracao-creatinina",
     icon: "fa-filter",
-    title: "Depuracao de Creatinina",
-    description: "Calcule depuracao, depuracao corrigida, excrecao total e por kg com interpretacao automatica.",
+    title: "Depuração de Creatinina",
+    description: "Calcule depuração, depuração corrigida, excreção total e por kg com interpretação automática.",
   },
   {
     to: "/filtracao-glomerular",
     icon: "fa-heartbeat",
-    title: "Filtracao Glomerular",
-    description: "Estime a TFG por CKD-EPI 2021 com estagio automatico, interpretacao e comparacao com Cockcroft-Gault.",
+    title: "Filtração Glomerular",
+    description: "Estime a TFG por CKD-EPI 2021 com estágio automático, interpretação e comparação com Cockcroft-Gault.",
   },
   {
     to: "/relacao-albumina-creatinina",
     icon: "fa-tint",
-    title: "Relacao Microalbuminuria/Creatinina",
-    description: "Calcule a relacao microalbuminuria/creatinina (ACR) em mg/g, com categoria automatica (A1, A2, A3) e interpretacao.",
+    title: "Relação Microalbuminúria/Creatinina",
+    description: "Calcule a relação microalbuminúria/creatinina (ACR) em mg/g, com categoria automática (A1, A2, A3) e interpretação.",
   },
   {
     to: "/saturacao-transferrina",
     icon: "fa-line-chart",
-    title: "Saturacao da Transferrina (IST)",
-    description: "Calcule o IST com TIBC direto ou pela transferrina, com classificacao e sugestao clinica.",
+    title: "Saturação da Transferrina (IST)",
+    description: "Calcule o IST com TIBC direto ou pela transferrina, com classificação e sugestão clínica.",
   },
 ];
 
@@ -79,6 +82,22 @@ function normalizeText(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
+}
+
+function formatDatePtBr(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("pt-BR");
+}
+
+function getTrialDaysRemaining(trialEndsAt) {
+  if (!trialEndsAt) return null;
+  const ends = new Date(trialEndsAt);
+  if (Number.isNaN(ends.getTime())) return null;
+  const now = new Date();
+  const diffMs = ends.getTime() - now.getTime();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }
 
 export default function Home() {
@@ -104,6 +123,42 @@ export default function Home() {
     });
   }, [query]);
 
+  const plan = String(profile?.plan || "").toLowerCase();
+  const trialStartsAt = profile?.trial_started_at || null;
+  const trialEndsAt = profile?.trial_ends_at || null;
+  const trialDaysRemaining = getTrialDaysRemaining(trialEndsAt);
+  const isFreePlan = plan === "free";
+  const planLabel = plan ? plan.toUpperCase() : "N/A";
+
+  const trialStatusText = useMemo(() => {
+    if (!isFreePlan || trialDaysRemaining === null) {
+      return "";
+    }
+    if (trialDaysRemaining > 1) {
+      return `Expira em ${trialDaysRemaining} dias`;
+    }
+    if (trialDaysRemaining === 1) {
+      return "Expira em 1 dia";
+    }
+    if (trialDaysRemaining === 0) {
+      return "Expira hoje";
+    }
+    return "Trial expirado";
+  }, [isFreePlan, trialDaysRemaining]);
+
+  const trialPeriodText = useMemo(() => {
+    if (!isFreePlan) return "";
+    const startText = formatDatePtBr(trialStartsAt);
+    const endText = formatDatePtBr(trialEndsAt);
+    if (startText && endText) {
+      return `Período: ${startText} até ${endText}`;
+    }
+    if (endText) {
+      return `Término do trial: ${endText}`;
+    }
+    return "";
+  }, [isFreePlan, trialEndsAt, trialStartsAt]);
+
   return (
     <Container>
       <Hero>
@@ -117,6 +172,15 @@ export default function Home() {
           </div>
         </TopRow>
         <Subtitle>Selecione uma ferramenta para iniciar os cálculos laboratoriais.</Subtitle>
+        {plan ? (
+          <PlanRow>
+            <PlanChip $isFree={isFreePlan}>
+              Plano: {planLabel}
+              {isFreePlan && trialStatusText ? ` • ${trialStatusText}` : ""}
+            </PlanChip>
+            {isFreePlan && trialPeriodText ? <PlanInfo>{trialPeriodText}</PlanInfo> : null}
+          </PlanRow>
+        ) : null}
       </Hero>
 
       <SearchRow>
@@ -136,13 +200,13 @@ export default function Home() {
               <em className={`fa ${item.icon}`} aria-hidden="true" /> {item.title}
             </MenuTitle>
             <MenuDescription>{item.description}</MenuDescription>
-            <Shortcut>Abrir modulo</Shortcut>
+            <Shortcut>Abrir módulo</Shortcut>
           </MenuCard>
         ))}
       </MenuGrid>
 
       {filteredItems.length === 0 && (
-        <EmptyState>Nenhum modulo encontrado para a busca informada.</EmptyState>
+        <EmptyState>Nenhum módulo encontrado para a busca informada.</EmptyState>
       )}
 
       {isAdmin && (
@@ -152,7 +216,7 @@ export default function Home() {
               <em className="fa fa-users" aria-hidden="true" /> Painel Admin
             </MenuTitle>
             <MenuDescription>Gerencie o status ativo/inativo dos usuários.</MenuDescription>
-            <Shortcut>Abrir modulo</Shortcut>
+            <Shortcut>Abrir módulo</Shortcut>
           </MenuCard>
         </MenuGrid>
       )}

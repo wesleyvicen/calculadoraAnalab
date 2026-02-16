@@ -431,7 +431,7 @@ export default function Cronometros() {
       window.localStorage.setItem(CHANNEL_NAMES_STORAGE_KEY, JSON.stringify(cachedNames));
       lastSavedNamesSignatureRef.current = channelNamesSignature;
     } catch (error) {
-      // noop: localStorage indisponivel neste ambiente
+      // noop: localStorage indisponível neste ambiente
     }
   }, [channels, channelNamesSignature]);
 
@@ -443,7 +443,7 @@ export default function Cronometros() {
 
       event.preventDefault();
       event.returnValue =
-        "Existem cronometros em execucao ou pausados. Se sair agora, os tempos serao perdidos.";
+        "Existem cronômetros em execução ou pausados. Se sair agora, os tempos serão perdidos.";
     }
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -455,7 +455,7 @@ export default function Cronometros() {
     const toneIndex = (nextId - 1) % TONE_PRESETS.length;
     setChannels((prevChannels) => [
       ...prevChannels,
-      createChannel(nextId, `Reacao ${nextId}`, DEFAULT_PRESET_MINUTES, toneIndex),
+      createChannel(nextId, `Reação ${nextId}`, DEFAULT_PRESET_MINUTES, toneIndex),
     ]);
   }
 
@@ -614,7 +614,7 @@ export default function Cronometros() {
       <Header>
         <HeaderBrand>
           <HeaderLogo src={`${process.env.PUBLIC_URL}/logo_analab_tools.png`} alt="LabSuite" />
-          <HeaderTitle>Multiplo Marcador de Tempo</HeaderTitle>
+          <HeaderTitle>Múltiplo Marcador de Tempo</HeaderTitle>
         </HeaderBrand>
         <TopActions>
           <AddButton type="button" onClick={addChannel}>
@@ -624,7 +624,7 @@ export default function Cronometros() {
       </Header>
 
       <InfoBanner>
-        Canais independentes com alerta sonoro automatico ao finalizar. Em execucao agora: {runningCount}
+        Canais independentes com alerta sonoro automático ao finalizar. Em execução agora: {runningCount}
       </InfoBanner>
 
       <Grid>
@@ -650,7 +650,7 @@ export default function Cronometros() {
                   onChange={(event) =>
                     setDraftNames((prev) => ({ ...prev, [channel.id]: event.target.value }))
                   }
-                  placeholder="Nome da reacao"
+                  placeholder="Nome da reação"
                   aria-label="Nome do contador"
                 />
                 <SaveNameButton type="button" onClick={() => saveChannelName(channel)}>
@@ -726,12 +726,12 @@ export default function Cronometros() {
             <StatusText>Status: {getStatusLabel(channel.status)}</StatusText>
             {channel.status === "completed" && channel.completedAtMs ? (
               <StatusText>
-                Finalizado ha: {formatTime(getCompletedElapsedSeconds(channel, nowMs))}
+                Finalizado há: {formatTime(getCompletedElapsedSeconds(channel, nowMs))}
               </StatusText>
             ) : null}
             {channel.status === "completed" && channel.alertPending ? (
               <AcknowledgeButton type="button" onClick={() => acknowledgeCompletion(channel.id)}>
-                Confirmar finalizacao
+                Confirmar finalização
               </AcknowledgeButton>
             ) : null}
             </TimerCard>

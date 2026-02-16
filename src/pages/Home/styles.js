@@ -60,6 +60,33 @@ export const Subtitle = styled.p`
   text-align: center;
 `;
 
+export const PlanRow = styled.div`
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const PlanChip = styled.span`
+  display: inline-block;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: ${({ $isFree }) => ($isFree ? "#9a3412" : "#1e3a8a")};
+  background: ${({ $isFree }) => ($isFree ? "#ffedd5" : "#dbeafe")};
+  border: 1px solid ${({ $isFree }) => ($isFree ? "#fdba74" : "#bfdbfe")};
+`;
+
+export const PlanInfo = styled.p`
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
 export const UserChip = styled.span`
   display: inline-block;
   margin-right: 8px;

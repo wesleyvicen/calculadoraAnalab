@@ -59,8 +59,7 @@ const ERIT_COUNTER_ID = "n";
 const LIMITED_COUNTER_IDS = COUNTER_IDS.filter((id) => id !== ERIT_COUNTER_ID);
 const DEFAULT_HEADER_TEXT =
   'Pressione as teclas "A", "S", "D", "F", "G", "H", "Z", "X", "C", "V", "B", "P" ou "N" para somar +1:';
-const INTRO_HEADER_TEXT =
-  "Pressione Enter para iniciar a contagem.";
+const INTRO_HEADER_TEXT = "Pressione Enter para iniciar a contagem.";
 
 function sumCounters(values, ids) {
   return ids.reduce((sum, key) => sum + (values[key] || 0), 0);
@@ -134,7 +133,7 @@ function Hematologia() {
     }
 
     const utterance = new SpeechSynthesisUtterance(
-      "A contagem finalizou. Clique em zero para reiniciar"
+      "A contagem finalizou. Clique em zero para reiniciar."
     );
     utterance.lang = "pt-BR";
     utterance.rate = 0.85;
@@ -384,7 +383,7 @@ function Hematologia() {
         <FinishBanner>
           <FinishText>Contagem finalizada: limite de 100 atingido.</FinishText>
           <FinishButton type="button" onClick={acknowledgeLimitReached}>
-            Confirmar finalizacao
+            Confirmar finalização
           </FinishButton>
         </FinishBanner>
       )}

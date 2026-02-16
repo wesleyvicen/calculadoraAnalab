@@ -17,11 +17,13 @@ import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
 import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
 import SaturacaoTransferrina from "./pages/SaturacaoTransferrina";
 import AdminUsuarios from "./pages/AdminUsuarios";
+import Institucional from "./pages/Institucional";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import { AdminRoute, GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
+import { useAuth } from "./contexts/AuthContext";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -77,8 +79,8 @@ function LocationAwareApp() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<RootRoute />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Home />} />
           <Route path="/calculadora" element={<Calculadora />} />
           <Route path="/hematologia" element={<Hematologia />} />
           <Route path="/cronometros" element={<Cronometros />} />
@@ -98,6 +100,20 @@ function LocationAwareApp() {
       </RouterRoutes>
     </div>
   );
+}
+
+function RootRoute() {
+  const { loading, session } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (session) {
+    return <Home />;
+  }
+
+  return <Institucional />;
 }
 
 function AppRoutes() {
