@@ -92,6 +92,17 @@ export default function Home() {
           </MenuDescription>
           <Shortcut>Abrir modulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/saturacao-transferrina">
+          <MenuTitle>
+            <em className="fa fa-percentage" aria-hidden="true" /> Saturacao da Transferrina (IST)
+          </MenuTitle>
+          <MenuDescription>
+            Calcule o IST com TIBC direto ou pela transferrina, com classificacao e sugestao
+            clinica.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );

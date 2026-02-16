@@ -9,6 +9,7 @@ import GlicemiaEstimada from "./pages/GlicemiaEstimada";
 import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
 import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
+import SaturacaoTransferrina from "./pages/SaturacaoTransferrina";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -29,6 +30,8 @@ function getBackgroundClass(pathname) {
       return "filtracao-glomerular";
     case "/relacao-albumina-creatinina":
       return "relacao-albumina-creatinina";
+    case "/saturacao-transferrina":
+      return "saturacao-transferrina";
     default:
       return "";
   }
@@ -65,6 +68,7 @@ function LocationAwareApp() {
           path="/relacao-albumina-creatinina"
           element={<RelacaoAlbuminaCreatinina />}
         />
+        <Route path="/saturacao-transferrina" element={<SaturacaoTransferrina />} />
       </RouterRoutes>
     </div>
   );
