@@ -71,6 +71,17 @@ export default function Home() {
           </MenuDescription>
           <Shortcut>Abrir modulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/filtracao-glomerular">
+          <MenuTitle>
+            <em className="fa fa-heartbeat" aria-hidden="true" /> Filtracao Glomerular
+          </MenuTitle>
+          <MenuDescription>
+            Estime a TFG por CKD-EPI 2021 com estagio automatico, interpretacao e comparacao com
+            Cockcroft-Gault.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );
