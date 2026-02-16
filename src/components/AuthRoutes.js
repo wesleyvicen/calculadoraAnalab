@@ -74,3 +74,21 @@ export function GuestRoute() {
 
   return <Outlet />;
 }
+
+export function AdminRoute() {
+  const { loading, session, isAdmin } = useAuth();
+
+  if (loading) {
+    return <AuthCheckingScreen />;
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}

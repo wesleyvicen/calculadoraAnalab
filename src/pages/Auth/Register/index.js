@@ -16,6 +16,7 @@ import {
 
 export default function Register() {
   const { signUp, session } = useAuth();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function Register() {
     setLoading(true);
     setError("");
     setMessage("");
-    const { error: authError } = await signUp(email, password);
+    const { error: authError } = await signUp(email, password, fullName);
     if (authError) {
       setError(authError.message || "Falha no cadastro.");
     } else {
@@ -47,13 +48,22 @@ export default function Register() {
         <Subtitle>Crie seu acesso no sistema.</Subtitle>
         <form onSubmit={handleSubmit}>
           <Field>
+            Nome completo
+            <Input
+              type="text"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              required
+              autoFocus
+            />
+          </Field>
+          <Field>
             E-mail
             <Input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              autoFocus
             />
           </Field>
           <Field>

@@ -82,8 +82,15 @@ function normalizeText(value) {
 }
 
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const [query, setQuery] = useState("");
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.display_name ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email ||
+    "";
 
   const filteredItems = useMemo(() => {
     const term = normalizeText(query);
@@ -103,7 +110,7 @@ export default function Home() {
         <TopRow>
           <Title>LabSuite</Title>
           <div>
-            {user?.email ? <UserChip>{user.email}</UserChip> : null}
+            {displayName ? <UserChip>{displayName}</UserChip> : null}
             <LogoutButton type="button" onClick={signOut}>
               Sair
             </LogoutButton>
@@ -136,6 +143,18 @@ export default function Home() {
 
       {filteredItems.length === 0 && (
         <EmptyState>Nenhum modulo encontrado para a busca informada.</EmptyState>
+      )}
+
+      {isAdmin && (
+        <MenuGrid style={{ marginTop: 16 }}>
+          <MenuCard as={Link} to="/admin/usuarios">
+            <MenuTitle>
+              <em className="fa fa-users" aria-hidden="true" /> Painel Admin
+            </MenuTitle>
+            <MenuDescription>Gerencie o status ativo/inativo dos usuários.</MenuDescription>
+            <Shortcut>Abrir modulo</Shortcut>
+          </MenuCard>
+        </MenuGrid>
       )}
     </Container>
   );

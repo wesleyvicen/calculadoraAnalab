@@ -1,10 +1,16 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { fetchProfileActive, isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import {
+  fetchCurrentProfile,
+  fetchProfileActive,
+  isSupabaseConfigured,
+  supabase,
+} from "../lib/supabaseClient";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authMessage, setAuthMessage] = useState("");
 
@@ -31,6 +37,12 @@ export function AuthProvider({ children }) {
     return { allowed: true, message: "" };
   }
 
+  async function syncProfileData(nextSession) {
+    if (!nextSession) return null;
+    const profileResult = await fetchCurrentProfile(nextSession);
+    return profileResult.profile ?? null;
+  }
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
@@ -46,6 +58,7 @@ export function AuthProvider({ children }) {
         const nextSession = data.session ?? null;
         if (!nextSession) {
           setSession(null);
+          setProfile(null);
           return;
         }
 
@@ -55,11 +68,13 @@ export function AuthProvider({ children }) {
         if (!accessCheck.allowed) {
           await supabase.auth.signOut();
           setSession(null);
+          setProfile(null);
           setAuthMessage(accessCheck.message);
           return;
         }
 
         setSession(nextSession);
+        setProfile(await syncProfileData(nextSession));
         setAuthMessage("");
       })
       .finally(() => {
@@ -77,6 +92,7 @@ export function AuthProvider({ children }) {
 
       if (!nextSession) {
         setSession(null);
+        setProfile(null);
         setLoading(false);
         return;
       }
@@ -93,12 +109,14 @@ export function AuthProvider({ children }) {
           return;
         }
         setSession(null);
+        setProfile(null);
         setAuthMessage(accessCheck.message);
         setLoading(false);
         return;
       }
 
       setSession(nextSession);
+      setProfile(await syncProfileData(nextSession));
       setAuthMessage("");
       setLoading(false);
     });
@@ -114,6 +132,8 @@ export function AuthProvider({ children }) {
       loading,
       session,
       user: session?.user ?? null,
+      profile,
+      isAdmin: String(profile?.role || "").toLowerCase() === "admin",
       authMessage,
       isConfigured: isSupabaseConfigured,
       clearAuthMessage() {
@@ -133,14 +153,17 @@ export function AuthProvider({ children }) {
         if (!accessCheck.allowed) {
           await supabase.auth.signOut();
           setSession(null);
+          setProfile(null);
           setAuthMessage(accessCheck.message);
           return { data: { user: null, session: null }, error: new Error(accessCheck.message) };
         }
 
+        const profileResult = await fetchCurrentProfile(response.data.session);
+        setProfile(profileResult.profile ?? null);
         setAuthMessage("");
         return response;
       },
-      async signUp(email, password) {
+      async signUp(email, password, fullName) {
         if (!supabase) {
           return { error: new Error("Supabase não configurado.") };
         }
@@ -149,6 +172,9 @@ export function AuthProvider({ children }) {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/reset-password`,
+            data: {
+              display_name: fullName,
+            },
           },
         });
       },
@@ -171,11 +197,13 @@ export function AuthProvider({ children }) {
           return { error: new Error("Supabase não configurado.") };
         }
         const response = await supabase.auth.signOut();
+        setSession(null);
+        setProfile(null);
         setAuthMessage("");
         return response;
       },
     }),
-    [authMessage, loading, session]
+    [authMessage, loading, profile, session]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

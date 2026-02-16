@@ -4,44 +4,151 @@ const SESSION_STORAGE_KEY = "analab_supabase_session_v1";
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
+function getAuthHeaders(accessToken) {
+  return {
+    apikey: supabaseAnonKey,
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+  };
+}
+
+async function queryProfilesBy(session, column, select) {
+  const userId = encodeURIComponent(session.user.id);
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/profiles?select=${encodeURIComponent(select)}&${column}=eq.${userId}&limit=1`,
+    { headers: getAuthHeaders(session.access_token) }
+  );
+  const payload = await response.json().catch(() => []);
+  if (!response.ok) {
+    return { rows: null, error: toError(payload, "Falha ao consultar profiles.") };
+  }
+  return { rows: Array.isArray(payload) ? payload : [], error: null };
+}
+
 export async function fetchProfileActive(session) {
   if (!isSupabaseConfigured || !session?.access_token || !session?.user?.id) {
     return { active: null, error: new Error("Sessão inválida para consultar perfil.") };
   }
 
-  const userId = encodeURIComponent(session.user.id);
-  const baseHeaders = {
-    apikey: supabaseAnonKey,
-    Authorization: `Bearer ${session.access_token}`,
-  };
-
-  async function queryBy(column) {
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/profiles?select=active&${column}=eq.${userId}&limit=1`,
-      { headers: baseHeaders }
-    );
-    const payload = await response.json().catch(() => []);
-    if (!response.ok) {
-      return { rows: null, error: toError(payload, "Falha ao consultar profiles.") };
-    }
-    return { rows: Array.isArray(payload) ? payload : [], error: null };
-  }
-
-  const byUserId = await queryBy("user_id");
-  if (!byUserId.error && byUserId.rows.length > 0) {
-    return { active: Boolean(byUserId.rows[0]?.active), error: null };
-  }
-
-  const byId = await queryBy("id");
+  const byId = await queryProfilesBy(session, "id", "active");
   if (!byId.error && byId.rows.length > 0) {
     return { active: Boolean(byId.rows[0]?.active), error: null };
   }
-
-  if (byUserId.error && byId.error) {
-    return { active: null, error: byUserId.error };
+  if (byId.error) {
+    return { active: null, error: byId.error };
   }
 
   return { active: false, error: null };
+}
+
+export async function fetchCurrentProfile(session) {
+  if (!isSupabaseConfigured || !session?.access_token || !session?.user?.id) {
+    return { profile: null, error: new Error("Sessão inválida para consultar perfil.") };
+  }
+
+  const byId = await queryProfilesBy(session, "id", "*");
+  if (!byId.error && byId.rows.length > 0) {
+    return { profile: byId.rows[0], error: null };
+  }
+  if (byId.error) {
+    return { profile: null, error: byId.error };
+  }
+
+  return { profile: null, error: null };
+}
+
+export async function listProfiles(session) {
+  if (!isSupabaseConfigured || !session?.access_token) {
+    return { data: [], error: new Error("Sessão inválida para listar perfis.") };
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/profiles?select=*&limit=300`, {
+    headers: getAuthHeaders(session.access_token),
+  });
+  const payload = await response.json().catch(() => []);
+  if (!response.ok) {
+    return { data: [], error: toError(payload, "Falha ao listar perfis.") };
+  }
+
+  return { data: Array.isArray(payload) ? payload : [], error: null };
+}
+
+export async function updateProfileActive(session, profileIdentifier, nextActive) {
+  if (!isSupabaseConfigured || !session?.access_token || !profileIdentifier) {
+    return { error: new Error("Dados inválidos para atualizar perfil.") };
+  }
+
+  const headers = {
+    ...getAuthHeaders(session.access_token),
+    Prefer: "return=representation",
+  };
+
+  const byId = await (async () => {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(profileIdentifier)}`,
+      {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ active: nextActive }),
+      }
+    );
+    const payload = await response.json().catch(() => []);
+    return { ok: response.ok, payload };
+  })();
+  if (byId.ok) {
+    return { error: null };
+  }
+
+  return { error: toError(byId.payload, "Falha ao atualizar status do perfil.") };
+}
+
+export async function upsertProfileFromSession(session, profileData = {}) {
+  if (!isSupabaseConfigured || !session?.access_token || !session?.user?.id) {
+    return { error: new Error("Sessão inválida para sincronizar perfil.") };
+  }
+
+  const fullName = String(
+    profileData.full_name ||
+      profileData.display_name ||
+      profileData.name ||
+      session.user?.user_metadata?.display_name ||
+      session.user?.user_metadata?.full_name ||
+      session.user?.user_metadata?.name ||
+      ""
+  ).trim();
+  const email = String(profileData.email || session.user?.email || "").trim();
+
+  const commonBody = {
+    full_name: fullName || null,
+    email: email || null,
+  };
+
+  const baseHeaders = {
+    ...getAuthHeaders(session.access_token),
+    Prefer: "resolution=merge-duplicates,return=representation",
+  };
+
+  const tryUpsert = async () => {
+    const body = { id: session.user.id, ...commonBody };
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?on_conflict=id&select=*`,
+      {
+        method: "POST",
+        headers: baseHeaders,
+        body: JSON.stringify(body),
+      }
+    );
+    const payload = await response.json().catch(() => []);
+    return { ok: response.ok, payload };
+  };
+
+  const byId = await tryUpsert();
+  if (byId.ok) {
+    return { error: null };
+  }
+
+  return { error: toError(byId.payload, "Falha ao sincronizar perfil.") };
 }
 
 function toError(payload, fallbackMessage) {
@@ -229,6 +336,7 @@ class SupabaseRestAuth {
           email,
           password,
           ...(options?.emailRedirectTo ? { email_redirect_to: options.emailRedirectTo } : {}),
+          ...(options?.data ? { data: options.data } : {}),
         },
       });
 

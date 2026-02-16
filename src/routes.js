@@ -16,11 +16,12 @@ import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
 import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
 import SaturacaoTransferrina from "./pages/SaturacaoTransferrina";
+import AdminUsuarios from "./pages/AdminUsuarios";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
-import { GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
+import { AdminRoute, GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -43,6 +44,8 @@ function getBackgroundClass(pathname) {
       return "relacao-albumina-creatinina";
     case "/saturacao-transferrina":
       return "saturacao-transferrina";
+    case "/admin/usuarios":
+      return "admin-usuarios";
     default:
       return "";
   }
@@ -87,6 +90,9 @@ function LocationAwareApp() {
             element={<RelacaoAlbuminaCreatinina />}
           />
           <Route path="/saturacao-transferrina" element={<SaturacaoTransferrina />} />
+        </Route>
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/usuarios" element={<AdminUsuarios />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </RouterRoutes>
