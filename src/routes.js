@@ -8,6 +8,7 @@ import Cronometros from "./pages/Cronometros";
 import GlicemiaEstimada from "./pages/GlicemiaEstimada";
 import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
+import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -26,6 +27,8 @@ function getBackgroundClass(pathname) {
       return "depuracao-creatinina";
     case "/filtracao-glomerular":
       return "filtracao-glomerular";
+    case "/relacao-albumina-creatinina":
+      return "relacao-albumina-creatinina";
     default:
       return "";
   }
@@ -58,6 +61,10 @@ function LocationAwareApp() {
         <Route path="/glicemia-estimada" element={<GlicemiaEstimada />} />
         <Route path="/depuracao-creatinina" element={<DepuracaoCreatinina />} />
         <Route path="/filtracao-glomerular" element={<FiltracaoGlomerular />} />
+        <Route
+          path="/relacao-albumina-creatinina"
+          element={<RelacaoAlbuminaCreatinina />}
+        />
       </RouterRoutes>
     </div>
   );

@@ -82,6 +82,16 @@ export default function Home() {
           </MenuDescription>
           <Shortcut>Abrir modulo</Shortcut>
         </MenuCard>
+
+        <MenuCard as={Link} to="/relacao-albumina-creatinina">
+          <MenuTitle>
+            <em className="fa fa-vial" aria-hidden="true" /> Relacao Albumina/Creatinina
+          </MenuTitle>
+          <MenuDescription>
+            Calcule o ACR em mg/g, com categoria automatica (A1, A2, A3) e interpretacao.
+          </MenuDescription>
+          <Shortcut>Abrir modulo</Shortcut>
+        </MenuCard>
       </MenuGrid>
     </Container>
   );
