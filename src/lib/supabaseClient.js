@@ -13,16 +13,20 @@ function getAuthHeaders(accessToken) {
 }
 
 async function queryProfilesBy(session, column, select) {
-  const userId = encodeURIComponent(session.user.id);
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/profiles?select=${encodeURIComponent(select)}&${column}=eq.${userId}&limit=1`,
-    { headers: getAuthHeaders(session.access_token) }
-  );
-  const payload = await response.json().catch(() => []);
-  if (!response.ok) {
-    return { rows: null, error: toError(payload, "Falha ao consultar profiles.") };
+  try {
+    const userId = encodeURIComponent(session.user.id);
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?select=${encodeURIComponent(select)}&${column}=eq.${userId}&limit=1`,
+      { headers: getAuthHeaders(session.access_token) }
+    );
+    const payload = await response.json().catch(() => []);
+    if (!response.ok) {
+      return { rows: null, error: toError(payload, "Falha ao consultar profiles.") };
+    }
+    return { rows: Array.isArray(payload) ? payload : [], error: null };
+  } catch (error) {
+    return { rows: null, error: new Error("Falha de conexão ao consultar profiles.") };
   }
-  return { rows: Array.isArray(payload) ? payload : [], error: null };
 }
 
 export async function fetchProfileActive(session) {
@@ -62,15 +66,19 @@ export async function listProfiles(session) {
     return { data: [], error: new Error("Sessão inválida para listar perfis.") };
   }
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/profiles?select=*&limit=300`, {
-    headers: getAuthHeaders(session.access_token),
-  });
-  const payload = await response.json().catch(() => []);
-  if (!response.ok) {
-    return { data: [], error: toError(payload, "Falha ao listar perfis.") };
-  }
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/profiles?select=*&limit=300`, {
+      headers: getAuthHeaders(session.access_token),
+    });
+    const payload = await response.json().catch(() => []);
+    if (!response.ok) {
+      return { data: [], error: toError(payload, "Falha ao listar perfis.") };
+    }
 
-  return { data: Array.isArray(payload) ? payload : [], error: null };
+    return { data: Array.isArray(payload) ? payload : [], error: null };
+  } catch (error) {
+    return { data: [], error: new Error("Falha de conexão ao listar perfis.") };
+  }
 }
 
 export async function updateProfileActive(session, profileIdentifier, nextActive) {
@@ -231,14 +239,22 @@ class SupabaseRestAuth {
       ...(options.headers || {}),
     };
 
-    const response = await fetch(`${supabaseUrl}${path}`, {
-      method: options.method || "GET",
-      headers,
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    try {
+      const response = await fetch(`${supabaseUrl}${path}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
 
-    const payload = await response.json().catch(() => ({}));
-    return { ok: response.ok, payload };
+      const payload = await response.json().catch(() => ({}));
+      return { ok: response.ok, payload, networkError: false };
+    } catch (error) {
+      return {
+        ok: false,
+        payload: { message: "Falha de conexão." },
+        networkError: true,
+      };
+    }
   }
 
   async ensureFreshSession() {
@@ -251,10 +267,15 @@ class SupabaseRestAuth {
       return session;
     }
 
-    const { ok, payload } = await this.request("/auth/v1/token?grant_type=refresh_token", {
+    const { ok, payload, networkError } = await this.request("/auth/v1/token?grant_type=refresh_token", {
       method: "POST",
       body: { refresh_token: session.refresh_token },
     });
+
+    if (networkError) {
+      this.currentSession = session;
+      return session;
+    }
 
     if (!ok) {
       this.setSession(null, "SIGNED_OUT");

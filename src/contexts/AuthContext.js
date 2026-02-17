@@ -1,12 +1,66 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   fetchCurrentProfile,
-  fetchProfileActive,
   isSupabaseConfigured,
   supabase,
 } from "../lib/supabaseClient";
 
 const AuthContext = createContext(null);
+const PROFILE_CACHE_KEY = "analab_profile_cache_v1";
+
+function readCachedProfiles() {
+  try {
+    const raw = window.localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function readCachedProfile(userId) {
+  if (!userId) return null;
+  const cache = readCachedProfiles();
+  return cache[userId] || null;
+}
+
+function writeCachedProfile(userId, profile) {
+  if (!userId || !profile) return;
+  try {
+    const cache = readCachedProfiles();
+    cache[userId] = profile;
+    window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    // noop
+  }
+}
+
+function evaluatePlanAccess(profile) {
+  const plan = String(profile?.plan || "").toLowerCase();
+  if (plan !== "free") {
+    return { allowed: true, message: "" };
+  }
+
+  const trialEndsAt = profile?.trial_ends_at;
+  if (!trialEndsAt) {
+    return { allowed: true, message: "" };
+  }
+
+  const endsAt = new Date(trialEndsAt);
+  if (Number.isNaN(endsAt.getTime())) {
+    return { allowed: true, message: "" };
+  }
+
+  if (Date.now() > endsAt.getTime()) {
+    return {
+      allowed: false,
+      message: "Seu período gratuito expirou. Atualize seu plano para continuar usando o sistema.",
+    };
+  }
+
+  return { allowed: true, message: "" };
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
@@ -14,33 +68,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [authMessage, setAuthMessage] = useState("");
 
-  async function ensureActiveSession(nextSession) {
-    if (!nextSession) {
-      return { allowed: false, message: "" };
-    }
-
-    const { active, error } = await fetchProfileActive(nextSession);
-    if (error) {
-      return {
-        allowed: false,
-        message: "Não foi possível validar seu acesso. Entre em contato com o administrador do sistema.",
-      };
-    }
-
-    if (!active) {
-      return {
-        allowed: false,
-        message: "Seu acesso está inativo. Entre em contato com o administrador do sistema.",
-      };
-    }
-
-    return { allowed: true, message: "" };
-  }
-
   async function syncProfileData(nextSession) {
     if (!nextSession) return null;
     const profileResult = await fetchCurrentProfile(nextSession);
-    return profileResult.profile ?? null;
+    if (profileResult.profile) {
+      writeCachedProfile(nextSession.user?.id, profileResult.profile);
+      return profileResult.profile;
+    }
+    return readCachedProfile(nextSession.user?.id);
   }
 
   useEffect(() => {
@@ -62,9 +97,9 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        const accessCheck = await ensureActiveSession(nextSession);
+        const profileData = await syncProfileData(nextSession);
         if (!mounted) return;
-
+        const accessCheck = evaluatePlanAccess(profileData);
         if (!accessCheck.allowed) {
           await supabase.auth.signOut();
           setSession(null);
@@ -74,7 +109,7 @@ export function AuthProvider({ children }) {
         }
 
         setSession(nextSession);
-        setProfile(await syncProfileData(nextSession));
+        setProfile(profileData);
         setAuthMessage("");
       })
       .finally(() => {
@@ -98,7 +133,8 @@ export function AuthProvider({ children }) {
       }
 
       setLoading(true);
-      const accessCheck = await ensureActiveSession(nextSession);
+      const profileData = await syncProfileData(nextSession);
+      const accessCheck = evaluatePlanAccess(profileData);
       if (!mounted) {
         return;
       }
@@ -116,7 +152,7 @@ export function AuthProvider({ children }) {
       }
 
       setSession(nextSession);
-      setProfile(await syncProfileData(nextSession));
+      setProfile(profileData);
       setAuthMessage("");
       setLoading(false);
     });
@@ -149,7 +185,13 @@ export function AuthProvider({ children }) {
           return response;
         }
 
-        const accessCheck = await ensureActiveSession(response.data.session);
+        const profileResult = await fetchCurrentProfile(response.data.session);
+        const profileData =
+          profileResult.profile || readCachedProfile(response.data.session?.user?.id) || null;
+        if (profileData) {
+          writeCachedProfile(response.data.session?.user?.id, profileData);
+        }
+        const accessCheck = evaluatePlanAccess(profileData);
         if (!accessCheck.allowed) {
           await supabase.auth.signOut();
           setSession(null);
@@ -158,8 +200,7 @@ export function AuthProvider({ children }) {
           return { data: { user: null, session: null }, error: new Error(accessCheck.message) };
         }
 
-        const profileResult = await fetchCurrentProfile(response.data.session);
-        setProfile(profileResult.profile ?? null);
+        setProfile(profileData);
         setAuthMessage("");
         return response;
       },
