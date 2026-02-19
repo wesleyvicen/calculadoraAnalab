@@ -170,6 +170,13 @@ export const SetupButton = styled.button`
   cursor: pointer;
 `;
 
+export const SetupError = styled.p`
+  margin: 8px 0 0;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 700;
+`;
+
 export const MainArea = styled.div`
   display: flex;
   flex-direction: column;
@@ -320,6 +327,17 @@ export const Footer = styled.div`
         justify-content: center;
       }
     `}
+`;
+
+export const CurrentCountName = styled.p`
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: rgba(239, 246, 255, 0.9);
+  font-size: clamp(13px, 1vw, 16px);
+  font-weight: 700;
+  color: #1e3a8a;
 `;
 
 export const Total = styled.p`

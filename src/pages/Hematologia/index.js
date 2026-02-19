@@ -12,6 +12,8 @@ import {
   SetupLabel,
   SetupInput,
   SetupButton,
+  SetupError,
+  CurrentCountName,
   MainArea,
   Board,
   CounterCard,
@@ -123,6 +125,9 @@ function Hematologia() {
   const [blinkTokens, setBlinkTokens] = useState(INITIAL_COUNTS);
   const [lastPressedKey, setLastPressedKey] = useState(null);
   const [countHistory, setCountHistory] = useState(() => readCountHistory());
+  const [setupCountName, setSetupCountName] = useState("");
+  const [currentCountName, setCurrentCountName] = useState("");
+  const [setupError, setSetupError] = useState("");
   const hasReachedLimit = useRef(false);
   const audioContextRef = useRef(null);
   const limitAlertTimeoutRef = useRef(null);
@@ -230,7 +235,7 @@ function Hematologia() {
     }
   }, []);
 
-  const persistCountHistory = useCallback((snapshot) => {
+  const persistCountHistory = useCallback((snapshot, countName) => {
     const snapshotTotal = sumCounters(snapshot, LIMITED_COUNTER_IDS);
     const snapshotErit = snapshot[ERIT_COUNTER_ID] || 0;
 
@@ -246,6 +251,7 @@ function Hematologia() {
     const historyEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       savedAt: new Date().toISOString(),
+      countName: String(countName || "").trim() || "Contagem sem nome",
       total: snapshotTotal,
       erit: snapshotErit,
       highlights,
@@ -306,9 +312,11 @@ function Hematologia() {
   }
 
   function resetCounters() {
-    persistCountHistory(counts);
+    persistCountHistory(counts, currentCountName);
     setCounts(INITIAL_COUNTS);
     setSetupValues(buildZeroSetupValues());
+    setCurrentCountName("");
+    setSetupError("");
     setupActiveCounterRef.current = null;
     setIsSetupLocked(false);
     setBlinkTokens(INITIAL_COUNTS);
@@ -323,15 +331,35 @@ function Hematologia() {
       acc[id] = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
       return acc;
     }, {});
+    const parsedTotal = sumCounters(parsedCounts, LIMITED_COUNTER_IDS);
+
+    if (parsedTotal > MAX_TOTAL) {
+      setSetupError(
+        `A soma inicial das teclas (sem ERIT) não pode passar de ${MAX_TOTAL}. Ajuste os valores para iniciar.`
+      );
+      return;
+    }
+
+    const normalizedCountName = String(setupCountName || "").trim();
+    const defaultCountName = `Contagem ${new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date())}`;
+    const nextCountName = normalizedCountName || defaultCountName;
 
     setCounts(parsedCounts);
+    setCurrentCountName(nextCountName);
+    setSetupError("");
     setBlinkTokens(INITIAL_COUNTS);
     setLastPressedKey(null);
     setupActiveCounterRef.current = null;
     hasReachedLimit.current = false;
     setIsLimitAlertActive(false);
     setIsSetupLocked(true);
-  }, [setupValues]);
+  }, [setupValues, setupCountName]);
 
   function handleSetupSubmit(event) {
     event.preventDefault();
@@ -349,6 +377,16 @@ function Hematologia() {
       }
 
       if (!isSetupLocked) {
+        const activeElementId =
+          document.activeElement && "id" in document.activeElement
+            ? document.activeElement.id
+            : "";
+        const isTypingCountName = activeElementId === "setup-count-name";
+
+        if (isTypingCountName) {
+          return;
+        }
+
         if (INITIAL_COUNTS[pressedKey] !== undefined) {
           event.preventDefault();
           setupActiveCounterRef.current = pressedKey;
@@ -468,6 +506,19 @@ function Hematologia() {
       {!isSetupLocked && (
         <SetupCard as="form" onSubmit={handleSetupSubmit}>
           <SetupTitle>Digite os valores iniciais de cada tecla</SetupTitle>
+          <SetupField>
+            <SetupLabel htmlFor="setup-count-name">Nome/Título da contagem</SetupLabel>
+            <SetupInput
+              id="setup-count-name"
+              type="text"
+              value={setupCountName}
+              onChange={(event) => setSetupCountName(event.target.value)}
+              onFocus={() => {
+                setupActiveCounterRef.current = null;
+              }}
+              placeholder="Ex.: Leucograma João - turno manhã"
+            />
+          </SetupField>
           <SetupGrid>
             {COUNTERS.map((counter) => (
               <SetupField key={counter.id}>
@@ -490,6 +541,7 @@ function Hematologia() {
           <SetupButton type="submit">
             Iniciar contagem
           </SetupButton>
+          {setupError && <SetupError>{setupError}</SetupError>}
         </SetupCard>
       )}
 
@@ -514,6 +566,7 @@ function Hematologia() {
         </Board>
 
         <Footer $compactMode={isSetupLocked}>
+          {isSetupLocked && <CurrentCountName>{currentCountName}</CurrentCountName>}
           <Total>Total: {totalCount}</Total>
           <Observation>
             Observação: ERIT contado individualmente sem participar da soma total = {eritCount}
@@ -526,8 +579,8 @@ function Hematologia() {
               )}
               {countHistory.map((entry) => (
                 <HistoryItem key={entry.id}>
-                  {formatSavedAt(entry.savedAt)} | Total {entry.total} | ERIT {entry.erit} |{" "}
-                  {entry.highlights.join(", ")}
+                  {entry.countName} | {formatSavedAt(entry.savedAt)} | Total {entry.total} | ERIT{" "}
+                  {entry.erit} | {entry.highlights.join(", ")}
                 </HistoryItem>
               ))}
             </HistoryList>
