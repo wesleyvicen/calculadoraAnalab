@@ -75,6 +75,18 @@ const MENU_ITEMS = [
     title: "Saturação da Transferrina (IST)",
     description: "Calcule o IST com TIBC direto ou pela transferrina, com classificação e sugestão clínica.",
   },
+  {
+    to: "/ldl-vldl-friedewald",
+    icon: "fa-heart-o",
+    title: "LDL e VLDL (Friedewald)",
+    description: "Calcule LDL e VLDL a partir de colesterol total, HDL e triglicerídeos com validação automática para TG alto.",
+  },
+  {
+    to: "/proteinuria-24h",
+    icon: "fa-flask",
+    title: "Proteinúria de 24 horas",
+    description: "Calcule a excreção proteica em mg/24h e g/24h com interpretação automática por faixa.",
+  },
 ];
 
 function normalizeText(value) {

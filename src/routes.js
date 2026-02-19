@@ -16,6 +16,8 @@ import DepuracaoCreatinina from "./pages/DepuracaoCreatinina";
 import FiltracaoGlomerular from "./pages/FiltracaoGlomerular";
 import RelacaoAlbuminaCreatinina from "./pages/RelacaoAlbuminaCreatinina";
 import SaturacaoTransferrina from "./pages/SaturacaoTransferrina";
+import LdlVldlFriedewald from "./pages/LdlVldlFriedewald";
+import Proteinuria24h from "./pages/Proteinuria24h";
 import AdminUsuarios from "./pages/AdminUsuarios";
 import Institucional from "./pages/Institucional";
 import Login from "./pages/Auth/Login";
@@ -48,6 +50,10 @@ function getBackgroundClass(pathname) {
       return "relacao-albumina-creatinina";
     case "/saturacao-transferrina":
       return "saturacao-transferrina";
+    case "/ldl-vldl-friedewald":
+      return "ldl-vldl-friedewald";
+    case "/proteinuria-24h":
+      return "proteinuria-24h";
     case "/admin/usuarios":
       return "admin-usuarios";
     default:
@@ -94,6 +100,8 @@ function LocationAwareApp() {
             element={<RelacaoAlbuminaCreatinina />}
           />
           <Route path="/saturacao-transferrina" element={<SaturacaoTransferrina />} />
+          <Route path="/ldl-vldl-friedewald" element={<LdlVldlFriedewald />} />
+          <Route path="/proteinuria-24h" element={<Proteinuria24h />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="/admin/usuarios" element={<AdminUsuarios />} />

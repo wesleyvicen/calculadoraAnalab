@@ -39,7 +39,7 @@ const AREAS = [
     benefits: [
       "Calculadora de Íons com preenchimento rápido.",
       "Glicemia Média Estimada em segundos.",
-      "Fluxo inovador para reduzir conta manual.",
+      "LDL e VLDL por Friedewald com validação para TG alto.",
     ],
   },
   {
@@ -57,7 +57,7 @@ const AREAS = [
     benefits: [
       "Depuração de Creatinina com foco em produtividade.",
       "Filtração Glomerular (CKD-EPI 2021) como diferencial inovador.",
-      "Relação Microalbuminúria/Creatinina para análise única e rápida.",
+      "Relação Microalbuminúria/Creatinina e Proteinúria de 24h para análise única e rápida.",
     ],
   },
   {
@@ -92,7 +92,7 @@ export default function Institucional() {
 
           <HeroHighlights>
             <HighlightItem>
-              <em className="fa fa-check-circle" aria-hidden="true" />8 módulos clínicos
+              <em className="fa fa-check-circle" aria-hidden="true" />10 módulos clínicos
             </HighlightItem>
             <HighlightItem>
               <em className="fa fa-check-circle" aria-hidden="true" />4 áreas laboratoriais

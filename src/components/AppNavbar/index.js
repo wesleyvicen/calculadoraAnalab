@@ -27,6 +27,8 @@ const BASE_LINKS = [
   { to: "/filtracao-glomerular", label: "Filtração" },
   { to: "/relacao-albumina-creatinina", label: "ACR" },
   { to: "/saturacao-transferrina", label: "IST" },
+  { to: "/ldl-vldl-friedewald", label: "LDL/VLDL" },
+  { to: "/proteinuria-24h", label: "Proteinúria" },
 ];
 
 export default function AppNavbar() {
