@@ -6,7 +6,6 @@ import {
   FinishText,
   FinishButton,
   SetupCard,
-  SetupTitle,
   SetupGrid,
   SetupField,
   SetupLabel,
