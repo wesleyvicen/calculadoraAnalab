@@ -311,7 +311,7 @@ function Hematologia() {
     });
   }
 
-  function resetCounters() {
+  const resetCounters = useCallback(() => {
     persistCountHistory(counts, currentCountName);
     setCounts(INITIAL_COUNTS);
     setSetupValues(buildZeroSetupValues());
@@ -323,7 +323,7 @@ function Hematologia() {
     setLastPressedKey(null);
     hasReachedLimit.current = false;
     setIsLimitAlertActive(false);
-  }
+  }, [buildZeroSetupValues, counts, currentCountName, persistCountHistory]);
 
   const startCountingWithInitialValues = useCallback(() => {
     const parsedCounts = COUNTER_IDS.reduce((acc, id) => {
