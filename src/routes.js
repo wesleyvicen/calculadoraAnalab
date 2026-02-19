@@ -25,6 +25,7 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 import { AdminRoute, GuestRoute, ProtectedRoute } from "./components/AuthRoutes";
 import { useAuth } from "./contexts/AuthContext";
 import AppNavbar from "./components/AppNavbar";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 import "./App.css";
 
 function getBackgroundClass(pathname) {
@@ -126,6 +127,7 @@ function AppRoutes() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="app">
+        <PwaInstallPrompt />
         <LocationAwareApp />
       </div>
     </BrowserRouter>
