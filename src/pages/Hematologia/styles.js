@@ -46,6 +46,10 @@ export const Container = styled.div`
       height: 90vh;
       display: flex;
       flex-direction: column;
+
+      @media (max-width: 760px) {
+        height: auto;
+      }
     `}
 `;
 
@@ -206,6 +210,10 @@ export const Board = styled.div`
     css`
       min-height: 0;
       height: 100%;
+
+      @media (max-width: 760px) {
+        height: auto;
+      }
     `}
 
   @media (max-width: 1200px) {
@@ -213,6 +221,7 @@ export const Board = styled.div`
   }
 
   @media (max-width: 760px) {
+    grid-auto-rows: minmax(118px, auto);
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 `;
@@ -275,8 +284,9 @@ export const CounterCard = styled.button`
   }
 
   @media (max-width: 760px) {
-    min-height: 78px;
-    padding: 4px 4px;
+    min-height: 118px;
+    padding: 8px 4px;
+    gap: 6px;
   }
 `;
 
@@ -285,18 +295,33 @@ export const CounterLabel = styled.span`
   letter-spacing: 0.04em;
   color: ${({ $isActivated }) => ($isActivated ? "#1d4ed8" : "#111827")};
   transition: color 180ms ease;
+
+  @media (max-width: 760px) {
+    font-size: 16px;
+    line-height: 1.05;
+  }
 `;
 
 export const CounterValue = styled.strong`
   font-size: clamp(42px, 3.8vw, 84px);
   line-height: 1;
   color: #0f172a;
+
+  @media (max-width: 760px) {
+    font-size: 30px;
+    line-height: 1;
+  }
 `;
 
 export const CounterKey = styled.span`
   font-size: clamp(20px, 1.7vw, 34px);
   color: ${({ $isActivated }) => ($isActivated ? "#2563eb" : "#111827")};
   transition: color 180ms ease;
+
+  @media (max-width: 760px) {
+    font-size: 13px;
+    line-height: 1;
+  }
 `;
 
 export const Footer = styled.div`
