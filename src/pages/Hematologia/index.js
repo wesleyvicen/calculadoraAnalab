@@ -505,7 +505,6 @@ function Hematologia() {
 
       {!isSetupLocked && (
         <SetupCard as="form" onSubmit={handleSetupSubmit}>
-          <SetupTitle>Digite os valores iniciais de cada tecla</SetupTitle>
           <SetupField>
             <SetupLabel htmlFor="setup-count-name">Nome/Título da contagem</SetupLabel>
             <SetupInput
