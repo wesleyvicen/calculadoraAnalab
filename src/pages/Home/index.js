@@ -19,12 +19,22 @@ import {
   MenuDescription,
   Shortcut,
   EmptyState,
+  BillingCard,
+  BillingTitle,
+  BillingText,
+  BillingStatus,
+  BillingActions,
+  BillingPrimaryButton,
+  BillingGhostButton,
 } from "./styles";
 
 import "materialize-css/dist/css/materialize.min.css";
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabaseClient";
+
+const CREATE_CHECKOUT_URL = "https://ccwuxojfmisbddhyowfv.supabase.co/functions/v1/create-checkout";
 
 const MENU_ITEMS = [
   {
@@ -114,8 +124,12 @@ function getTrialDaysRemaining(trialEndsAt) {
 }
 
 export default function Home() {
-  const { user, profile, signOut, isAdmin } = useAuth();
+  const { user, profile, signOut, isAdmin, refreshProfile, session } = useAuth();
+  const location = useLocation();
   const [query, setQuery] = useState("");
+  const [billingStatus, setBillingStatus] = useState("");
+  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
   const displayName =
     profile?.full_name ||
     user?.user_metadata?.display_name ||
@@ -160,6 +174,23 @@ export default function Home() {
   }, [isFreePlan, trialDaysRemaining]);
 
   const isPaidPlan = plan === "paid";
+  const checkoutFeedback = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    const status =
+      String(search.get("status") || search.get("collection_status") || "").toLowerCase();
+
+    if (status === "approved") {
+      return "Pagamento aprovado. Clique em “Já paguei, atualizar plano” para sincronizar seu acesso.";
+    }
+    if (status === "pending" || status === "in_process") {
+      return "Pagamento em análise. Assim que aprovado, atualize o plano abaixo.";
+    }
+    if (status === "rejected" || status === "cancelled") {
+      return "Pagamento não concluído. Você pode tentar novamente.";
+    }
+
+    return "";
+  }, [location.search]);
 
   const trialPeriodText = useMemo(() => {
     if (!isFreePlan) return "";
@@ -173,6 +204,86 @@ export default function Home() {
     }
     return "";
   }, [isFreePlan, trialEndsAt, trialStartsAt]);
+
+  async function handleStartCheckout() {
+    let accessToken = session?.access_token || "";
+
+    try {
+      if (supabase?.auth?.getSession) {
+        const { data } = await supabase.auth.getSession();
+        accessToken = data?.session?.access_token || accessToken;
+      }
+    } catch (error) {
+      // se falhar refresh local, continua com token atual
+    }
+
+    if (!accessToken) {
+      setBillingStatus("Sessão inválida para iniciar pagamento. Entre novamente e tente.");
+      return;
+    }
+
+    setIsCreatingCheckout(true);
+    setBillingStatus("");
+
+    try {
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+      const anonKey = String(process.env.REACT_APP_SUPABASE_ANON_KEY || "").trim();
+      if (anonKey) {
+        headers.apikey = anonKey;
+      }
+
+      const response = await fetch(CREATE_CHECKOUT_URL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          source: "web-home",
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setBillingStatus(payload?.message || "Falha ao criar checkout. Tente novamente.");
+        return;
+      }
+
+      const checkoutUrl =
+        payload?.checkout_url || payload?.init_point || payload?.url || payload?.data?.checkout_url;
+
+      if (!checkoutUrl) {
+        setBillingStatus("Checkout retornou sem URL de redirecionamento.");
+        return;
+      }
+
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      setBillingStatus("Falha de conexão ao iniciar checkout.");
+    } finally {
+      setIsCreatingCheckout(false);
+    }
+  }
+
+  async function handleRefreshPlan() {
+    setIsRefreshingPlan(true);
+    setBillingStatus("");
+    const result = await refreshProfile();
+    setIsRefreshingPlan(false);
+
+    if (result.error) {
+      setBillingStatus(result.error.message || "Não foi possível atualizar o plano agora.");
+      return;
+    }
+
+    const nextPlan = String(result.profile?.plan || "").toLowerCase();
+    if (nextPlan === "paid") {
+      setBillingStatus("Plano atualizado com sucesso.");
+      return;
+    }
+
+    setBillingStatus("Pagamento ainda não confirmado no seu plano. Tente novamente em alguns instantes.");
+  }
 
   return (
     <Container>
@@ -207,6 +318,34 @@ export default function Home() {
           aria-label="Buscar ferramenta"
         />
       </SearchRow>
+
+      {isFreePlan && (
+        <BillingCard>
+          <BillingTitle>Upgrade de Plano via Mercado Pago</BillingTitle>
+          <BillingText>
+            Continue no plano gratuito durante o trial ou ative a versão paga para liberar acesso
+            contínuo sem bloqueios.
+          </BillingText>
+          {checkoutFeedback ? <BillingStatus>{checkoutFeedback}</BillingStatus> : null}
+          {billingStatus ? <BillingStatus>{billingStatus}</BillingStatus> : null}
+          <BillingActions>
+            <BillingPrimaryButton
+              type="button"
+              onClick={handleStartCheckout}
+              disabled={isCreatingCheckout}
+            >
+              {isCreatingCheckout ? "Abrindo checkout..." : "Ir para pagamento"}
+            </BillingPrimaryButton>
+            <BillingGhostButton
+              type="button"
+              onClick={handleRefreshPlan}
+              disabled={isRefreshingPlan}
+            >
+              {isRefreshingPlan ? "Atualizando..." : "Já paguei, atualizar plano"}
+            </BillingGhostButton>
+          </BillingActions>
+        </BillingCard>
+      )}
 
       <MenuGrid>
         {filteredItems.map((item) => (

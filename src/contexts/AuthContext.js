@@ -243,6 +243,25 @@ export function AuthProvider({ children }) {
         setAuthMessage("");
         return response;
       },
+      async refreshProfile() {
+        if (!session) {
+          return { profile: null, error: new Error("Sessão indisponível.") };
+        }
+
+        const profileData = await syncProfileData(session);
+        const accessCheck = evaluatePlanAccess(profileData);
+        if (!accessCheck.allowed) {
+          await supabase.auth.signOut();
+          setSession(null);
+          setProfile(null);
+          setAuthMessage(accessCheck.message);
+          return { profile: null, error: new Error(accessCheck.message) };
+        }
+
+        setProfile(profileData);
+        setAuthMessage("");
+        return { profile: profileData, error: null };
+      },
     }),
     [authMessage, loading, profile, session]
   );

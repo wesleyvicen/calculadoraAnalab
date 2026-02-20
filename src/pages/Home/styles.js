@@ -153,6 +153,75 @@ export const SearchInput = styled.input`
   }
 `;
 
+export const BillingCard = styled.section`
+  margin: 0 auto 18px;
+  width: min(720px, 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  padding: 14px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  box-shadow: 0 10px 18px rgba(234, 88, 12, 0.12);
+`;
+
+export const BillingTitle = styled.h3`
+  margin: 0;
+  color: #7c2d12;
+  font-size: clamp(18px, 2.2vw, 24px);
+`;
+
+export const BillingText = styled.p`
+  margin: 6px 0 0;
+  color: #9a3412;
+  font-size: 14px;
+  line-height: 1.45;
+`;
+
+export const BillingStatus = styled.p`
+  margin: 8px 0 0;
+  color: #7c2d12;
+  font-size: 13px;
+  font-weight: 700;
+`;
+
+export const BillingActions = styled.div`
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+export const BillingPrimaryButton = styled.button`
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+`;
+
+export const BillingGhostButton = styled.button`
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #9a3412;
+  background: #fff7ed;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+`;
+
 export const MenuGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
