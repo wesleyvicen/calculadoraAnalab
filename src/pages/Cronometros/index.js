@@ -40,6 +40,7 @@ const MAX_MINUTES = 240;
 const DEFAULT_PRESET_MINUTES = 10;
 const QUICK_PRESET_MINUTES = [1, 5, 10, 15, 30];
 const CHANNEL_NAMES_STORAGE_KEY = "analab_cronometros_channel_names_v1";
+const CHANNELS_STATE_STORAGE_KEY = "analab_cronometros_channels_state_v1";
 
 const TONE_PRESETS = [
   { name: "Bip Alfa", wave: "sine", base: 880, accent: 1320 },
@@ -82,8 +83,180 @@ function createChannel(id, name, presetMinutes, toneIndex) {
     status: "idle",
     alertPending: false,
     completedAtMs: null,
+    runEndsAtMs: null,
     toneIndex,
   };
+}
+
+function normalizeChannelState(rawChannel, fallbackChannel, nowMs) {
+  if (!rawChannel || typeof rawChannel !== "object") {
+    return fallbackChannel;
+  }
+
+  const presetSeconds = Math.min(
+    MAX_MINUTES * 60,
+    Math.max(1, parseInt(rawChannel.presetSeconds, 10) || fallbackChannel.presetSeconds)
+  );
+  const normalizedStatus = ["idle", "running", "paused", "completed"].includes(rawChannel.status)
+    ? rawChannel.status
+    : "idle";
+  const rawRemaining = parseInt(rawChannel.remainingSeconds, 10);
+  const safeRemaining = Number.isFinite(rawRemaining)
+    ? Math.min(MAX_MINUTES * 60, Math.max(0, rawRemaining))
+    : presetSeconds;
+  const rawToneIndex = parseInt(rawChannel.toneIndex, 10);
+  const toneIndex = Number.isFinite(rawToneIndex) ? rawToneIndex : fallbackChannel.toneIndex;
+  const name = String(rawChannel.name ?? fallbackChannel.name).trim() || fallbackChannel.name;
+  const completedAtMs = Number.isFinite(rawChannel.completedAtMs) ? rawChannel.completedAtMs : null;
+  const rawRunEndsAtMs = Number(rawChannel.runEndsAtMs);
+
+  if (normalizedStatus === "running") {
+    const runEndsAtMs = Number.isFinite(rawRunEndsAtMs)
+      ? rawRunEndsAtMs
+      : nowMs + safeRemaining * 1000;
+    const millisecondsLeft = runEndsAtMs - nowMs;
+
+    if (millisecondsLeft <= 0) {
+      return {
+        ...fallbackChannel,
+        name,
+        toneIndex,
+        presetSeconds,
+        presetMinutes: Math.floor(presetSeconds / 60),
+        presetInput: formatPresetInputFromSeconds(presetSeconds),
+        remainingSeconds: 0,
+        status: "completed",
+        alertPending: true,
+        completedAtMs: completedAtMs ?? runEndsAtMs,
+        runEndsAtMs: null,
+      };
+    }
+
+    return {
+      ...fallbackChannel,
+      name,
+      toneIndex,
+      presetSeconds,
+      presetMinutes: Math.floor(presetSeconds / 60),
+      presetInput: formatPresetInputFromSeconds(presetSeconds),
+      remainingSeconds: Math.ceil(millisecondsLeft / 1000),
+      status: "running",
+      alertPending: false,
+      completedAtMs: null,
+      runEndsAtMs,
+    };
+  }
+
+  if (normalizedStatus === "completed") {
+    return {
+      ...fallbackChannel,
+      name,
+      toneIndex,
+      presetSeconds,
+      presetMinutes: Math.floor(presetSeconds / 60),
+      presetInput: formatPresetInputFromSeconds(presetSeconds),
+      remainingSeconds: 0,
+      status: "completed",
+      alertPending: Boolean(rawChannel.alertPending),
+      completedAtMs: completedAtMs ?? nowMs,
+      runEndsAtMs: null,
+    };
+  }
+
+  return {
+    ...fallbackChannel,
+    name,
+    toneIndex,
+    presetSeconds,
+    presetMinutes: Math.floor(presetSeconds / 60),
+    presetInput: formatPresetInputFromSeconds(presetSeconds),
+    remainingSeconds: safeRemaining || presetSeconds,
+    status: normalizedStatus,
+    alertPending: false,
+    completedAtMs: null,
+    runEndsAtMs: null,
+  };
+}
+
+function buildInitialChannels() {
+  const fallbackChannels = withCachedNames(INITIAL_CHANNELS);
+  if (typeof window === "undefined") {
+    return fallbackChannels;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(CHANNELS_STATE_STORAGE_KEY);
+    if (!rawValue) {
+      return fallbackChannels;
+    }
+
+    const parsedChannels = JSON.parse(rawValue);
+    if (!Array.isArray(parsedChannels) || parsedChannels.length === 0) {
+      return fallbackChannels;
+    }
+
+    const nowMs = Date.now();
+    return parsedChannels
+      .map((rawChannel) => {
+        const rawId = parseInt(rawChannel?.id, 10);
+        if (!Number.isFinite(rawId)) {
+          return null;
+        }
+
+        const defaultName = `Reação ${rawId}`;
+        const fallbackChannel =
+          fallbackChannels.find((channel) => channel.id === rawId) ||
+          createChannel(rawId, defaultName, DEFAULT_PRESET_MINUTES, (rawId - 1) % TONE_PRESETS.length);
+
+        return normalizeChannelState(rawChannel, fallbackChannel, nowMs);
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.id - right.id);
+  } catch (error) {
+    return fallbackChannels;
+  }
+}
+
+function syncRunningChannels(channels, nowMs) {
+  let hasChanged = false;
+
+  const nextChannels = channels.map((channel) => {
+    if (channel.status !== "running") {
+      return channel;
+    }
+
+    const runEndsAtMs =
+      Number.isFinite(channel.runEndsAtMs) && channel.runEndsAtMs > 0
+        ? channel.runEndsAtMs
+        : nowMs + channel.remainingSeconds * 1000;
+    const millisecondsLeft = runEndsAtMs - nowMs;
+
+    if (millisecondsLeft <= 0) {
+      hasChanged = true;
+      return {
+        ...channel,
+        remainingSeconds: 0,
+        status: "completed",
+        alertPending: true,
+        completedAtMs: runEndsAtMs,
+        runEndsAtMs: null,
+      };
+    }
+
+    const remainingSeconds = Math.ceil(millisecondsLeft / 1000);
+    if (remainingSeconds !== channel.remainingSeconds || runEndsAtMs !== channel.runEndsAtMs) {
+      hasChanged = true;
+      return {
+        ...channel,
+        remainingSeconds,
+        runEndsAtMs,
+      };
+    }
+
+    return channel;
+  });
+
+  return hasChanged ? nextChannels : channels;
 }
 
 function formatTime(totalSeconds) {
@@ -161,7 +334,7 @@ function getCompletedElapsedSeconds(channel, nowMs) {
 }
 
 export default function Cronometros() {
-  const [channels, setChannels] = useState(() => withCachedNames(INITIAL_CHANNELS));
+  const [channels, setChannels] = useState(() => buildInitialChannels());
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [editingNames, setEditingNames] = useState({});
   const [draftNames, setDraftNames] = useState({});
@@ -174,6 +347,8 @@ export default function Cronometros() {
   const queuedSpeechIdsRef = useRef(new Set());
   const isSpeakingRef = useRef(false);
   const speakingChannelIdRef = useRef(null);
+  const notificationPermissionRequestedRef = useRef(false);
+  const lastNotifiedCompletionRef = useRef({});
 
   const runningCount = useMemo(
     () => channels.filter((channel) => channel.status === "running").length,
@@ -183,15 +358,6 @@ export default function Cronometros() {
     () => channels.map((channel) => `${channel.id}:${channel.name}`).join("|"),
     [channels]
   );
-  const hasActiveTimers = useMemo(
-    () =>
-      channels.some(
-        (channel) =>
-          channel.status === "running" || channel.status === "paused" || channel.alertPending
-      ),
-    [channels]
-  );
-
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
@@ -307,6 +473,70 @@ export default function Cronometros() {
     queuedSpeechIdsRef.current.delete(channelId);
   }, []);
 
+  const ensureNotificationPermission = useCallback(async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      return true;
+    }
+
+    if (Notification.permission === "denied" || notificationPermissionRequestedRef.current) {
+      return false;
+    }
+
+    notificationPermissionRequestedRef.current = true;
+
+    try {
+      const permission = await Notification.requestPermission();
+      return permission === "granted";
+    } catch (error) {
+      return false;
+    }
+  }, []);
+
+  const notifyCompletion = useCallback(async (channel) => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return;
+    }
+
+    const hasPermission =
+      Notification.permission === "granted" || (await ensureNotificationPermission());
+    if (!hasPermission) {
+      return;
+    }
+
+    const title = "Cronômetro finalizado";
+    const body = `${channel.name} chegou ao tempo final.`;
+    const icon = `${process.env.PUBLIC_URL}/logo_analab_tools.png`;
+    const tag = `cronometro-${channel.id}-${channel.completedAtMs ?? Date.now()}`;
+
+    if ("serviceWorker" in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration?.showNotification) {
+          await registration.showNotification(title, {
+            body,
+            icon,
+            badge: icon,
+            tag,
+            renotify: false,
+          });
+          return;
+        }
+      } catch (error) {
+        // fallback para Notification do contexto da página
+      }
+    }
+
+    try {
+      new Notification(title, { body, icon, tag });
+    } catch (error) {
+      // noop: navegador não permitiu exibir notificação
+    }
+  }, [ensureNotificationPermission]);
+
   useEffect(() => {
     if (!("speechSynthesis" in window) || voicesReadyRef.current) {
       return;
@@ -327,29 +557,36 @@ export default function Cronometros() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setNowMs(Date.now());
-      setChannels((prevChannels) =>
-        prevChannels.map((channel) => {
-          if (channel.status !== "running") {
-            return channel;
-          }
-
-          if (channel.remainingSeconds <= 1) {
-            return {
-              ...channel,
-              remainingSeconds: 0,
-              status: "completed",
-              alertPending: true,
-              completedAtMs: Date.now(),
-            };
-          }
-
-          return { ...channel, remainingSeconds: channel.remainingSeconds - 1 };
-        })
-      );
+      const nextNowMs = Date.now();
+      setNowMs(nextNowMs);
+      setChannels((prevChannels) => syncRunningChannels(prevChannels, nextNowMs));
     }, 1000);
 
     return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const syncNow = () => {
+      const nextNowMs = Date.now();
+      setNowMs(nextNowMs);
+      setChannels((prevChannels) => syncRunningChannels(prevChannels, nextNowMs));
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncNow();
+      }
+    };
+
+    window.addEventListener("focus", syncNow);
+    window.addEventListener("pageshow", syncNow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", syncNow);
+      window.removeEventListener("pageshow", syncNow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const clearAlarmLoop = useCallback((channelId) => {
@@ -403,6 +640,30 @@ export default function Cronometros() {
     });
   }, [channels, clearAlarmLoop, startAlarmLoop]);
 
+  useEffect(() => {
+    const completionMap = lastNotifiedCompletionRef.current;
+
+    channels.forEach((channel) => {
+      const mustNotify =
+        channel.status === "completed" &&
+        channel.alertPending &&
+        Number.isFinite(channel.completedAtMs) &&
+        channel.completedAtMs > 0;
+
+      if (!mustNotify) {
+        delete completionMap[channel.id];
+        return;
+      }
+
+      if (completionMap[channel.id] === channel.completedAtMs) {
+        return;
+      }
+
+      completionMap[channel.id] = channel.completedAtMs;
+      void notifyCompletion(channel);
+    });
+  }, [channels, notifyCompletion]);
+
   useEffect(
     () => () => {
       Object.values(alarmTimeoutsRef.current).forEach((timeoutId) => window.clearTimeout(timeoutId));
@@ -436,19 +697,12 @@ export default function Cronometros() {
   }, [channels, channelNamesSignature]);
 
   useEffect(() => {
-    function handleBeforeUnload(event) {
-      if (!hasActiveTimers) {
-        return;
-      }
-
-      event.preventDefault();
-      event.returnValue =
-        "Existem cronômetros em execução ou pausados. Se sair agora, os tempos serão perdidos.";
+    try {
+      window.localStorage.setItem(CHANNELS_STATE_STORAGE_KEY, JSON.stringify(channels));
+    } catch (error) {
+      // noop: localStorage indisponível neste ambiente
     }
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasActiveTimers]);
+  }, [channels]);
 
   function addChannel() {
     const nextId = channels.length === 0 ? 1 : Math.max(...channels.map((channel) => channel.id)) + 1;
@@ -484,6 +738,7 @@ export default function Cronometros() {
 
   function startChannel(channelId) {
     void ensureAudioContext();
+    void ensureNotificationPermission();
     setChannels((prevChannels) =>
       prevChannels.map((channel) => {
         if (channel.id !== channelId) {
@@ -497,21 +752,53 @@ export default function Cronometros() {
             status: "running",
             alertPending: false,
             completedAtMs: null,
+            runEndsAtMs: Date.now() + channel.presetSeconds * 1000,
           };
         }
 
-        return { ...channel, status: "running", alertPending: false, completedAtMs: null };
+        return {
+          ...channel,
+          status: "running",
+          alertPending: false,
+          completedAtMs: null,
+          runEndsAtMs: Date.now() + channel.remainingSeconds * 1000,
+        };
       })
     );
   }
 
   function pauseChannel(channelId) {
+    const nowMs = Date.now();
     setChannels((prevChannels) =>
-      prevChannels.map((channel) =>
-        channel.id === channelId && channel.status === "running"
-          ? { ...channel, status: "paused" }
-          : channel
-      )
+      prevChannels.map((channel) => {
+        if (channel.id !== channelId || channel.status !== "running") {
+          return channel;
+        }
+
+        const runEndsAtMs =
+          Number.isFinite(channel.runEndsAtMs) && channel.runEndsAtMs > 0
+            ? channel.runEndsAtMs
+            : nowMs + channel.remainingSeconds * 1000;
+        const remainingSeconds = Math.max(0, Math.ceil((runEndsAtMs - nowMs) / 1000));
+
+        if (remainingSeconds <= 0) {
+          return {
+            ...channel,
+            remainingSeconds: 0,
+            status: "completed",
+            alertPending: true,
+            completedAtMs: runEndsAtMs,
+            runEndsAtMs: null,
+          };
+        }
+
+        return {
+          ...channel,
+          remainingSeconds,
+          status: "paused",
+          runEndsAtMs: null,
+        };
+      })
     );
   }
 
@@ -525,6 +812,7 @@ export default function Cronometros() {
               status: "idle",
               alertPending: false,
               completedAtMs: null,
+              runEndsAtMs: null,
             }
           : channel
       )
@@ -558,6 +846,7 @@ export default function Cronometros() {
           updatedChannel.presetSeconds = parsedPresetSeconds;
           updatedChannel.presetMinutes = Math.floor(parsedPresetSeconds / 60);
           updatedChannel.completedAtMs = null;
+          updatedChannel.runEndsAtMs = null;
 
           if (channel.status !== "running") {
             updatedChannel.remainingSeconds = parsedPresetSeconds;
@@ -592,6 +881,7 @@ export default function Cronometros() {
         if (channel.status !== "running") {
           updatedChannel.remainingSeconds = nextPresetSeconds;
           updatedChannel.completedAtMs = null;
+          updatedChannel.runEndsAtMs = null;
           if (channel.status === "completed") {
             updatedChannel.status = "idle";
           }

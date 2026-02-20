@@ -218,6 +218,7 @@ export const Board = styled.div`
 
   @media (max-width: 1200px) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: minmax(124px, auto);
   }
 
   @media (max-width: 760px) {
@@ -288,11 +289,18 @@ export const CounterCard = styled.button`
     padding: 8px 4px;
     gap: 6px;
   }
+
+  @media (max-width: 980px) and (min-width: 761px) {
+    min-height: 124px;
+    padding: 8px 6px;
+    gap: 6px;
+  }
 `;
 
 export const CounterLabel = styled.span`
-  font-size: clamp(24px, 2vw, 42px);
+  font-size: clamp(18px, 2vw, 42px);
   letter-spacing: 0.04em;
+  line-height: 1;
   color: ${({ $isActivated }) => ($isActivated ? "#1d4ed8" : "#111827")};
   transition: color 180ms ease;
 
@@ -303,7 +311,7 @@ export const CounterLabel = styled.span`
 `;
 
 export const CounterValue = styled.strong`
-  font-size: clamp(42px, 3.8vw, 84px);
+  font-size: clamp(34px, 3.8vw, 84px);
   line-height: 1;
   color: #0f172a;
 
@@ -314,7 +322,8 @@ export const CounterValue = styled.strong`
 `;
 
 export const CounterKey = styled.span`
-  font-size: clamp(20px, 1.7vw, 34px);
+  font-size: clamp(16px, 1.7vw, 34px);
+  line-height: 1;
   color: ${({ $isActivated }) => ($isActivated ? "#2563eb" : "#111827")};
   transition: color 180ms ease;
 
